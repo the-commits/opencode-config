@@ -1,0 +1,168 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"plugin": ["opencode-gemini-auth@latest"],
+	"provider": {
+		"google": {
+			"models": {
+				"gemini-2.5-flash": {
+					"options": {
+						"thinkingConfig": {
+							"thinkingBudget": 8192,
+							"includeThoughts": true
+						}
+					}
+				},
+				"gemini-2.5-pro": {
+					"options": {
+						"thinkingConfig": {
+							"thinkingBudget": 8192,
+							"includeThoughts": true
+						}
+					}
+				},
+				"gemini-3-flash-preview": {
+					"options": {
+						"thinkingConfig": {
+							"thinkingLevel": "high",
+							"includeThoughts": true
+						}
+					}
+				},
+				"gemini-3-pro-preview": {
+					"options": {
+						"thinkingConfig": {
+							"thinkingLevel": "high",
+							"includeThoughts": true
+						}
+					}
+				}
+			}
+		}
+	},
+	"mode": {
+		"analyze": {
+			"temperature": 0.1,
+			"prompt": "{file:./prompts/analysis.txt}",
+			"tools": {
+				"bash": false,
+				"edit": false,
+				"write": false,
+				"patch": false,
+				"todowrite": false,
+				"read": true,
+				"grep": true,
+				"glob": true,
+				"list": true,
+				"todoread": true,
+				"webfetch": true,
+				"math_add": true,
+				"math_subtract": true,
+				"math_multiply": true,
+				"math_divide": true
+			}
+		},
+		"build": {
+			"temperature": 0.0,
+			"tools": {
+				"bash": true,
+				"edit": true,
+				"write": true,
+				"patch": true,
+				"todowrite": true,
+				"read": true,
+				"grep": true,
+				"glob": true,
+				"list": true,
+				"todoread": true,
+				"webfetch": true,
+				"math_add": true,
+				"math_subtract": true,
+				"math_multiply": true,
+				"math_divide": true
+			}
+		},
+		"plan": {
+			"temperature": 0.1,
+			"tools": {
+				"bash": false,
+				"edit": false,
+				"write": false,
+				"patch": false,
+				"todowrite": false,
+				"read": true,
+				"grep": true,
+				"glob": true,
+				"list": true,
+				"todoread": true,
+				"webfetch": true,
+				"math_add": true,
+				"math_subtract": true,
+				"math_multiply": true,
+				"math_divide": true
+			}
+		},
+		"brainstorm": {
+			"temperature": 0.7,
+			"prompt": "{file:./prompts/creative.txt}",
+			"tools": {
+				"bash": false,
+				"edit": false,
+				"write": false,
+				"patch": false,
+				"todowrite": false,
+				"read": true,
+				"grep": true,
+				"glob": true,
+				"list": true,
+				"todoread": true,
+				"webfetch": true,
+				"math_add": true,
+				"math_subtract": true,
+				"math_multiply": true,
+				"math_divide": true
+			}
+		},
+		"creative": {
+			"temperature": 1.0,
+			"prompt": "{file:./prompts/creative.txt}",
+			"tools": {
+				"bash": false,
+				"edit": false,
+				"write": false,
+				"patch": false,
+				"todowrite": false,
+				"read": true,
+				"grep": true,
+				"glob": true,
+				"list": true,
+				"todoread": true,
+				"webfetch": true,
+				"math_add": true,
+				"math_subtract": true,
+				"math_multiply": true,
+				"math_divide": true
+			}
+		},
+		"wild": {
+			"temperature": 2.0,
+			"prompt": "{file:./prompts/creative.txt}",
+			"tools": {
+				"bash": false,
+				"edit": false,
+				"write": false,
+				"patch": false,
+				"todowrite": false,
+				"read": true,
+				"grep": true,
+				"glob": true,
+				"list": true,
+				"todoread": true,
+				"webfetch": true,
+				"math_add": true,
+				"math_subtract": true,
+				"math_multiply": true,
+				"math_divide": true
+			}
+		}
+	}
+}
