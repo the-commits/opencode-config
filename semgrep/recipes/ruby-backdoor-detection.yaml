@@ -1,0 +1,288 @@
+rules:
+  # ============================================================
+  # RUBY SUPPLY CHAIN & BACKDOOR DETECTION
+  # Detect outbound network calls and backdoor patterns in Ruby
+  # Covers standard Ruby and Rails patterns
+  #
+  # Usage:
+  #   semgrep --config ruby-backdoor-detection.yaml \
+  #     --no-git-ignore --exclude='!vendor' vendor/bundle/
+  # ============================================================
+
+  # --- Outbound network: Net::HTTP ---
+  - id: ruby-outbound-net-http-get
+    pattern: Net::HTTP.get(...)
+    message: >
+      Net::HTTP.get() - outbound HTTP GET.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  - id: ruby-outbound-net-http-get-response
+    pattern: Net::HTTP.get_response(...)
+    message: >
+      Net::HTTP.get_response() - outbound HTTP request.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  - id: ruby-outbound-net-http-new
+    pattern: Net::HTTP.new(...)
+    message: >
+      Net::HTTP.new() - HTTP client instantiation.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  - id: ruby-outbound-net-http-start
+    pattern: Net::HTTP.start(...)
+    message: >
+      Net::HTTP.start() - opening HTTP connection.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  - id: ruby-outbound-net-http-post-form
+    pattern: Net::HTTP.post_form(...)
+    message: >
+      Net::HTTP.post_form() - outbound HTTP POST.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: open-uri ---
+  - id: ruby-outbound-open-uri
+    pattern: URI.open(...)
+    message: >
+      URI.open() (open-uri) - fetching remote URL content.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  - id: ruby-outbound-open-uri-legacy
+    pattern: open($URL)
+    message: >
+      open() call - may use open-uri to fetch remote content.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: HTTParty ---
+  - id: ruby-outbound-httparty-get
+    pattern: HTTParty.get(...)
+    message: >
+      HTTParty.get() - outbound HTTP GET.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  - id: ruby-outbound-httparty-post
+    pattern: HTTParty.post(...)
+    message: >
+      HTTParty.post() - outbound HTTP POST.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: Faraday ---
+  - id: ruby-outbound-faraday-new
+    pattern: Faraday.new(...)
+    message: >
+      Faraday.new() - HTTP client instantiation.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: RestClient ---
+  - id: ruby-outbound-restclient-get
+    pattern: RestClient.get(...)
+    message: >
+      RestClient.get() - outbound HTTP GET.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  - id: ruby-outbound-restclient-post
+    pattern: RestClient.post(...)
+    message: >
+      RestClient.post() - outbound HTTP POST.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: Typhoeus ---
+  - id: ruby-outbound-typhoeus
+    pattern: Typhoeus.get(...)
+    message: >
+      Typhoeus.get() - outbound HTTP request.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: TCPSocket ---
+  - id: ruby-outbound-tcpsocket
+    pattern: TCPSocket.new(...)
+    message: >
+      TCPSocket.new() - raw TCP connection.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: network-inventory
+
+  # --- Dynamic code execution ---
+  - id: ruby-suspicious-eval
+    pattern: eval(...)
+    message: >
+      eval() - dynamic code execution.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  - id: ruby-suspicious-instance-eval
+    pattern: $OBJ.instance_eval(...)
+    message: >
+      instance_eval() - dynamic code execution in object context.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  - id: ruby-suspicious-class-eval
+    pattern: $OBJ.class_eval(...)
+    message: >
+      class_eval() - dynamic code execution in class context.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  - id: ruby-suspicious-send
+    pattern: $OBJ.send(...)
+    message: >
+      send() - dynamic method invocation, can call private methods.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  # --- Shell execution ---
+  - id: ruby-suspicious-system
+    pattern: system(...)
+    message: >
+      system() - shell command execution.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  - id: ruby-suspicious-exec
+    pattern: exec(...)
+    message: >
+      exec() - replaces process with shell command.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  - id: ruby-suspicious-popen
+    pattern: IO.popen(...)
+    message: >
+      IO.popen() - process execution with I/O.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  - id: ruby-suspicious-open3
+    pattern: Open3.capture3(...)
+    message: >
+      Open3.capture3() - process execution with stdout/stderr capture.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  # --- Backdoor: eval with base64 ---
+  - id: ruby-backdoor-eval-base64
+    pattern: eval(Base64.decode64(...))
+    message: >
+      eval(Base64.decode64()) - obfuscated code execution.
+    severity: ERROR
+    languages: [ruby]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: Marshal.load (insecure deserialization) ---
+  - id: ruby-backdoor-marshal-load
+    pattern: Marshal.load(...)
+    message: >
+      Marshal.load() - insecure deserialization, known RCE vector.
+    severity: ERROR
+    languages: [ruby]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: YAML.load (unsafe in older Ruby) ---
+  - id: ruby-backdoor-yaml-load
+    pattern: YAML.load(...)
+    message: >
+      YAML.load() - unsafe deserialization (use YAML.safe_load instead).
+    severity: ERROR
+    languages: [ruby]
+    metadata:
+      category: backdoor
+      confidence: MEDIUM
+
+  # --- Backdoor: require with variable ---
+  - id: ruby-backdoor-dynamic-require
+    pattern: require($VAR)
+    message: >
+      Dynamic require - may load attacker-controlled code.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  # --- Rails-specific: dangerous controller patterns ---
+  - id: ruby-rails-render-inline
+    pattern: render inline:$CODE
+    message: >
+      render inline - server-side template injection risk.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  - id: ruby-rails-constantize
+    pattern: $STR.constantize
+    message: >
+      String#constantize - dynamic class resolution, can load arbitrary classes.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious
+
+  - id: ruby-rails-safe-constantize
+    pattern: $STR.safe_constantize
+    message: >
+      String#safe_constantize - dynamic class resolution.
+    severity: WARNING
+    languages: [ruby]
+    metadata:
+      category: suspicious

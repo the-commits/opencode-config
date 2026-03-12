@@ -1,0 +1,232 @@
+rules:
+  # ============================================================
+  # C/C++ SUPPLY CHAIN & BACKDOOR DETECTION
+  # Detect outbound network calls and backdoor patterns in C/C++
+  #
+  # Usage:
+  #   semgrep --config c-cpp-backdoor-detection.yaml .
+  # ============================================================
+
+  # --- Outbound network: socket ---
+  - id: c-outbound-socket
+    pattern: socket(...)
+    message: >
+      socket() - creating network socket.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  - id: c-outbound-connect
+    pattern: connect(...)
+    message: >
+      connect() - outbound network connection.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  - id: c-outbound-send
+    pattern: send(...)
+    message: >
+      send() - sending data over socket.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  - id: c-outbound-sendto
+    pattern: sendto(...)
+    message: >
+      sendto() - sending data over socket (UDP).
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  - id: c-outbound-recv
+    pattern: recv(...)
+    message: >
+      recv() - receiving data from socket.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: libcurl ---
+  - id: c-outbound-curl-easy-init
+    pattern: curl_easy_init(...)
+    message: >
+      curl_easy_init() - libcurl HTTP client.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  - id: c-outbound-curl-easy-perform
+    pattern: curl_easy_perform(...)
+    message: >
+      curl_easy_perform() - executing cURL request.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  - id: c-outbound-curl-easy-setopt
+    pattern: curl_easy_setopt(...)
+    message: >
+      curl_easy_setopt() - configuring cURL request.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: getaddrinfo (DNS) ---
+  - id: c-outbound-getaddrinfo
+    pattern: getaddrinfo(...)
+    message: >
+      getaddrinfo() - DNS resolution.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  - id: c-outbound-gethostbyname
+    pattern: gethostbyname(...)
+    message: >
+      gethostbyname() - DNS resolution (deprecated).
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  # --- Process execution ---
+  - id: c-suspicious-system
+    pattern: system(...)
+    message: >
+      system() - shell command execution.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  - id: c-suspicious-popen
+    pattern: popen(...)
+    message: >
+      popen() - shell command execution with pipe.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  - id: c-suspicious-execve
+    pattern: execve(...)
+    message: >
+      execve() - process execution.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  - id: c-suspicious-execvp
+    pattern: execvp(...)
+    message: >
+      execvp() - process execution with PATH search.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  - id: c-suspicious-fork
+    pattern: fork(...)
+    message: >
+      fork() - process forking.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  # --- Dynamic library loading ---
+  - id: c-suspicious-dlopen
+    pattern: dlopen(...)
+    message: >
+      dlopen() - dynamic shared library loading.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  - id: c-suspicious-dlsym
+    pattern: dlsym(...)
+    message: >
+      dlsym() - resolving symbol from dynamic library.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  - id: c-suspicious-loadlibrary
+    pattern: LoadLibrary(...)
+    message: >
+      LoadLibrary() - Windows DLL loading.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  - id: c-suspicious-getprocaddress
+    pattern: GetProcAddress(...)
+    message: >
+      GetProcAddress() - resolving function from DLL.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  # --- Memory manipulation (shellcode patterns) ---
+  - id: c-suspicious-mmap-exec
+    pattern: mmap(..., $PROT, ...)
+    message: >
+      mmap() - memory mapping, check for executable permissions.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  - id: c-suspicious-virtualalloc
+    pattern: VirtualAlloc(...)
+    message: >
+      VirtualAlloc() - Windows memory allocation, common in shellcode loaders.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: suspicious
+
+  # --- Environment access ---
+  - id: c-outbound-getenv
+    pattern: getenv(...)
+    message: >
+      getenv() - reading environment variable.
+    severity: WARNING
+    languages: [c, cpp]
+    metadata:
+      category: network-inventory
+
+  # --- C++ specific: Boost.Asio ---
+  - id: cpp-outbound-asio-connect
+    pattern: $SOCKET.connect(...)
+    message: >
+      Boost.Asio socket connect - outbound network connection.
+    severity: WARNING
+    languages: [cpp]
+    metadata:
+      category: network-inventory
+
+  - id: cpp-outbound-asio-resolver
+    pattern: $RESOLVER.resolve(...)
+    message: >
+      Boost.Asio resolver - DNS resolution.
+    severity: WARNING
+    languages: [cpp]
+    metadata:
+      category: network-inventory

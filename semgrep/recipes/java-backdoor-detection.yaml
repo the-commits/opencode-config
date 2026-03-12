@@ -1,0 +1,265 @@
+rules:
+  # ============================================================
+  # JAVA SUPPLY CHAIN & BACKDOOR DETECTION
+  # Detect outbound network calls and backdoor patterns in Java
+  # Covers standard Java, Spring, and common libraries
+  #
+  # Usage:
+  #   semgrep --config java-backdoor-detection.yaml src/
+  # ============================================================
+
+  # --- Outbound network: HttpURLConnection ---
+  - id: java-outbound-url-openconnection
+    pattern: $URL.openConnection(...)
+    message: >
+      URL.openConnection() - outbound HTTP connection.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  - id: java-outbound-url-openstream
+    pattern: $URL.openStream(...)
+    message: >
+      URL.openStream() - outbound HTTP stream.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: HttpClient (Java 11+) ---
+  - id: java-outbound-httpclient-send
+    pattern: $CLIENT.send(...)
+    message: >
+      HttpClient.send() - outbound HTTP request.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  - id: java-outbound-httpclient-sendasync
+    pattern: $CLIENT.sendAsync(...)
+    message: >
+      HttpClient.sendAsync() - outbound async HTTP request.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  - id: java-outbound-httpclient-newbuilder
+    pattern: HttpClient.newBuilder(...)
+    message: >
+      HttpClient.newBuilder() - HTTP client construction.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: Apache HttpClient ---
+  - id: java-outbound-apache-httpclient-execute
+    pattern: $CLIENT.execute(...)
+    message: >
+      Apache HttpClient execute() - outbound HTTP request.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: OkHttp ---
+  - id: java-outbound-okhttp-newcall
+    pattern: $CLIENT.newCall(...)
+    message: >
+      OkHttp newCall() - outbound HTTP request.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: Socket ---
+  - id: java-outbound-socket
+    pattern: new Socket(...)
+    message: >
+      Socket instantiation - raw TCP connection.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  - id: java-outbound-serversocket
+    pattern: new ServerSocket(...)
+    message: >
+      ServerSocket instantiation - network server socket.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: RestTemplate (Spring) ---
+  - id: java-outbound-resttemplate-getforobject
+    pattern: $RT.getForObject(...)
+    message: >
+      RestTemplate.getForObject() - outbound HTTP GET (Spring).
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  - id: java-outbound-resttemplate-postforobject
+    pattern: $RT.postForObject(...)
+    message: >
+      RestTemplate.postForObject() - outbound HTTP POST (Spring).
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  - id: java-outbound-resttemplate-exchange
+    pattern: $RT.exchange(...)
+    message: >
+      RestTemplate.exchange() - outbound HTTP request (Spring).
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: WebClient (Spring WebFlux) ---
+  - id: java-outbound-webclient-get
+    pattern: $WC.get(...)
+    message: >
+      WebClient.get() - outbound reactive HTTP GET (Spring WebFlux).
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  - id: java-outbound-webclient-post
+    pattern: $WC.post(...)
+    message: >
+      WebClient.post() - outbound reactive HTTP POST (Spring WebFlux).
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: network-inventory
+
+  # --- Process execution ---
+  - id: java-suspicious-runtime-exec
+    pattern: Runtime.getRuntime().exec(...)
+    message: >
+      Runtime.exec() - external process execution.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: suspicious
+
+  - id: java-suspicious-processbuilder
+    pattern: new ProcessBuilder(...)
+    message: >
+      ProcessBuilder - external process execution.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: suspicious
+
+  - id: java-suspicious-processbuilder-start
+    pattern: $PB.start(...)
+    message: >
+      ProcessBuilder.start() - launching external process.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: suspicious
+
+  # --- Dynamic code execution / reflection ---
+  - id: java-suspicious-classforname
+    pattern: Class.forName(...)
+    message: >
+      Class.forName() - dynamic class loading.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: suspicious
+
+  - id: java-suspicious-method-invoke
+    pattern: $METHOD.invoke(...)
+    message: >
+      Method.invoke() - reflective method invocation.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: suspicious
+
+  - id: java-suspicious-classloader
+    pattern: new URLClassLoader(...)
+    message: >
+      URLClassLoader - loading classes from URLs.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: suspicious
+
+  # --- Deserialization ---
+  - id: java-backdoor-objectinputstream
+    pattern: new ObjectInputStream(...)
+    message: >
+      ObjectInputStream - insecure deserialization, known RCE vector.
+    severity: ERROR
+    languages: [java]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  - id: java-backdoor-readobject
+    pattern: $OIS.readObject(...)
+    message: >
+      readObject() - Java deserialization, potential RCE.
+    severity: ERROR
+    languages: [java]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: Runtime.exec with base64 ---
+  - id: java-backdoor-exec-base64
+    patterns:
+      - pattern: |
+          $CMD = new String(Base64.getDecoder().decode(...));
+          ...
+          Runtime.getRuntime().exec($CMD);
+    message: >
+      Base64-decoded command execution - obfuscated backdoor.
+    severity: ERROR
+    languages: [java]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: ScriptEngine eval ---
+  - id: java-backdoor-scriptengine-eval
+    pattern: $ENGINE.eval(...)
+    message: >
+      ScriptEngine.eval() - dynamic script execution (Nashorn/GraalJS).
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: suspicious
+
+  # --- JNDI injection ---
+  - id: java-backdoor-jndi-lookup
+    pattern: $CTX.lookup(...)
+    message: >
+      JNDI lookup - potential JNDI injection (Log4Shell-style).
+    severity: ERROR
+    languages: [java]
+    metadata:
+      category: backdoor
+      confidence: MEDIUM
+
+  # --- XML External Entity ---
+  - id: java-suspicious-xmlinputfactory
+    pattern: XMLInputFactory.newInstance(...)
+    message: >
+      XMLInputFactory - may be vulnerable to XXE if not configured securely.
+    severity: WARNING
+    languages: [java]
+    metadata:
+      category: suspicious

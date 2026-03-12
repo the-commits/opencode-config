@@ -1,0 +1,249 @@
+rules:
+  # ============================================================
+  # GO SUPPLY CHAIN & BACKDOOR DETECTION
+  # Detect outbound network calls and backdoor patterns in Go
+  #
+  # Usage:
+  #   semgrep --config go-backdoor-detection.yaml .
+  # ============================================================
+
+  # --- Outbound network: net/http ---
+  - id: go-outbound-http-get
+    pattern: http.Get(...)
+    message: >
+      http.Get() - outbound HTTP GET.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-http-post
+    pattern: http.Post(...)
+    message: >
+      http.Post() - outbound HTTP POST.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-http-postform
+    pattern: http.PostForm(...)
+    message: >
+      http.PostForm() - outbound HTTP POST.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-http-do
+    pattern: $CLIENT.Do(...)
+    message: >
+      http.Client.Do() - outbound HTTP request.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-http-newrequest
+    pattern: http.NewRequest(...)
+    message: >
+      http.NewRequest() - constructing HTTP request.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-http-newrequestwithcontext
+    pattern: http.NewRequestWithContext(...)
+    message: >
+      http.NewRequestWithContext() - constructing HTTP request.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: net.Dial ---
+  - id: go-outbound-net-dial
+    pattern: net.Dial(...)
+    message: >
+      net.Dial() - raw network connection.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-net-dialtimeout
+    pattern: net.DialTimeout(...)
+    message: >
+      net.DialTimeout() - raw network connection with timeout.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-net-listen
+    pattern: net.Listen(...)
+    message: >
+      net.Listen() - network listener.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: gRPC ---
+  - id: go-outbound-grpc-dial
+    pattern: grpc.Dial(...)
+    message: >
+      grpc.Dial() - gRPC connection.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-grpc-newclient
+    pattern: grpc.NewClient(...)
+    message: >
+      grpc.NewClient() - gRPC client.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: DNS ---
+  - id: go-outbound-net-lookuphost
+    pattern: net.LookupHost(...)
+    message: >
+      net.LookupHost() - DNS lookup.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-net-resolver
+    pattern: $R.LookupHost(...)
+    message: >
+      Resolver.LookupHost() - DNS lookup.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  # --- Process execution ---
+  - id: go-suspicious-exec-command
+    pattern: exec.Command(...)
+    message: >
+      exec.Command() - external process execution.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: suspicious
+
+  - id: go-suspicious-exec-commandcontext
+    pattern: exec.CommandContext(...)
+    message: >
+      exec.CommandContext() - external process execution.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: suspicious
+
+  # --- Plugin loading ---
+  - id: go-suspicious-plugin-open
+    pattern: plugin.Open(...)
+    message: >
+      plugin.Open() - loading Go plugin (.so) at runtime.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: suspicious
+
+  # --- CGo ---
+  - id: go-suspicious-cgo-import-c
+    pattern: |
+      import "C"
+    message: >
+      import "C" - CGo foreign function interface.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: suspicious
+
+  # --- Backdoor: init() abuse ---
+  - id: go-suspicious-init-function
+    pattern: |
+      func init() { ... }
+    message: >
+      init() function - runs automatically on package import, common backdoor vector.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: suspicious
+
+  # --- Backdoor: download and exec ---
+  - id: go-backdoor-download-exec
+    patterns:
+      - pattern: |
+          $RESP, ... = http.Get($URL)
+          ...
+          exec.Command(...).Run()
+    message: >
+      HTTP download followed by command execution - possible dropper.
+    severity: ERROR
+    languages: [go]
+    metadata:
+      category: backdoor
+      confidence: MEDIUM
+
+  # --- Backdoor: env exfiltration ---
+  - id: go-backdoor-env-exfil
+    patterns:
+      - pattern: |
+          $ENVS := os.Environ()
+          ...
+          http.Post($URL, ...)
+    message: >
+      os.Environ() sent via HTTP POST - environment variable exfiltration.
+    severity: ERROR
+    languages: [go]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Unsafe ---
+  - id: go-suspicious-unsafe-pointer
+    pattern: unsafe.Pointer(...)
+    message: >
+      unsafe.Pointer - bypasses Go type safety.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: suspicious
+
+  # --- Reflect ---
+  - id: go-suspicious-reflect-call
+    pattern: $V.Call(...)
+    message: >
+      reflect.Value.Call() - dynamic function invocation.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: suspicious
+
+  # --- Environment access ---
+  - id: go-outbound-os-getenv
+    pattern: os.Getenv(...)
+    message: >
+      os.Getenv() - reading environment variable.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory
+
+  - id: go-outbound-os-environ
+    pattern: os.Environ(...)
+    message: >
+      os.Environ() - reading all environment variables.
+    severity: WARNING
+    languages: [go]
+    metadata:
+      category: network-inventory

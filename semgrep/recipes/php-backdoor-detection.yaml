@@ -1,0 +1,239 @@
+rules:
+  # ============================================================
+  # PHP SUPPLY CHAIN & BACKDOOR DETECTION
+  # Detect outbound network calls and backdoor patterns in PHP
+  #
+  # Usage:
+  #   semgrep --config php-backdoor-detection.yaml \
+  #     --no-git-ignore --exclude='!vendor' vendor/
+  # ============================================================
+
+  # --- Outbound network: cURL ---
+  - id: php-outbound-curl-init
+    pattern: curl_init(...)
+    message: >
+      curl_init() call detected - outbound HTTP request.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  - id: php-outbound-curl-exec
+    pattern: curl_exec(...)
+    message: >
+      curl_exec() call detected - executing cURL request.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: file_get_contents ---
+  - id: php-outbound-file-get-contents
+    pattern: file_get_contents(...)
+    message: >
+      file_get_contents() call - may fetch remote content via URL wrappers.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: fopen ---
+  - id: php-outbound-fopen
+    pattern: fopen($URL, ...)
+    message: >
+      fopen() call - PHP can open URLs with fopen wrappers.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: stream/socket ---
+  - id: php-outbound-fsockopen
+    pattern: fsockopen(...)
+    message: >
+      fsockopen() - raw socket connection.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  - id: php-outbound-stream-socket-client
+    pattern: stream_socket_client(...)
+    message: >
+      stream_socket_client() - outbound socket connection.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: Guzzle ---
+  - id: php-outbound-guzzle-request
+    pattern: $CLIENT->request(...)
+    message: >
+      Guzzle-style HTTP request detected.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  - id: php-outbound-guzzle-get
+    pattern: $CLIENT->get(...)
+    message: >
+      HTTP GET request (Guzzle-style).
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  - id: php-outbound-guzzle-post
+    pattern: $CLIENT->post(...)
+    message: >
+      HTTP POST request (Guzzle-style).
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: network-inventory
+
+  # --- Dynamic code execution ---
+  - id: php-suspicious-eval
+    pattern: eval(...)
+    message: >
+      eval() call - dynamic code execution.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  - id: php-suspicious-create-function
+    pattern: create_function(...)
+    message: >
+      create_function() - deprecated, evaluates code string.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  # --- Shell execution ---
+  - id: php-suspicious-exec
+    pattern: exec(...)
+    message: >
+      exec() - shell command execution.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  - id: php-suspicious-system
+    pattern: system(...)
+    message: >
+      system() - shell command execution with output.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  - id: php-suspicious-shell-exec
+    pattern: shell_exec(...)
+    message: >
+      shell_exec() - shell command execution.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  - id: php-suspicious-passthru
+    pattern: passthru(...)
+    message: >
+      passthru() - shell command execution with raw output.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  - id: php-suspicious-proc-open
+    pattern: proc_open(...)
+    message: >
+      proc_open() - process execution with I/O control.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  - id: php-suspicious-popen
+    pattern: popen(...)
+    message: >
+      popen() - process pipe execution.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  # --- Backdoor: base64 decode + eval ---
+  - id: php-backdoor-eval-base64
+    pattern: eval(base64_decode(...))
+    message: >
+      eval(base64_decode()) - classic PHP backdoor pattern.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: env exfiltration ---
+  - id: php-backdoor-env-exfil-getenv
+    patterns:
+      - pattern: |
+          $DATA = getenv(...);
+          ...
+          curl_exec(...);
+    message: >
+      Environment variable read followed by cURL exec - possible exfiltration.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: backdoor
+      confidence: MEDIUM
+
+  # --- Backdoor: writing PHP files (webshell) ---
+  - id: php-backdoor-file-put-contents-php
+    patterns:
+      - pattern: file_put_contents($PATH, ...)
+      - metavariable-regex:
+          metavariable: $PATH
+          regex: .*\.php.*
+    message: >
+      Writing .php file - possible webshell deployment.
+    severity: ERROR
+    languages: [php]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: obfuscated function calls ---
+  - id: php-backdoor-variable-function
+    pattern: $FUNC($ARGS)
+    message: >
+      Variable function call - may hide malicious function invocation.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  # --- Backdoor: include/require remote ---
+  - id: php-backdoor-include-variable
+    pattern: include($VAR)
+    message: >
+      Dynamic include - may load remote or attacker-controlled code.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious
+
+  - id: php-backdoor-require-variable
+    pattern: require($VAR)
+    message: >
+      Dynamic require - may load remote or attacker-controlled code.
+    severity: WARNING
+    languages: [php]
+    metadata:
+      category: suspicious

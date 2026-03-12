@@ -1,0 +1,246 @@
+rules:
+  # ============================================================
+  # C# / .NET SUPPLY CHAIN & BACKDOOR DETECTION
+  # Detect outbound network calls and backdoor patterns in C#
+  #
+  # Usage:
+  #   semgrep --config csharp-backdoor-detection.yaml .
+  # ============================================================
+
+  # --- Outbound network: HttpClient ---
+  - id: csharp-outbound-httpclient-new
+    pattern: new HttpClient(...)
+    message: >
+      HttpClient instantiation - outbound HTTP capability.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  - id: csharp-outbound-httpclient-get
+    pattern: $CLIENT.GetAsync(...)
+    message: >
+      HttpClient.GetAsync() - outbound HTTP GET.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  - id: csharp-outbound-httpclient-post
+    pattern: $CLIENT.PostAsync(...)
+    message: >
+      HttpClient.PostAsync() - outbound HTTP POST.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  - id: csharp-outbound-httpclient-send
+    pattern: $CLIENT.SendAsync(...)
+    message: >
+      HttpClient.SendAsync() - outbound HTTP request.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  - id: csharp-outbound-httpclient-getstring
+    pattern: $CLIENT.GetStringAsync(...)
+    message: >
+      HttpClient.GetStringAsync() - outbound HTTP GET.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: WebClient (legacy) ---
+  - id: csharp-outbound-webclient-new
+    pattern: new WebClient(...)
+    message: >
+      WebClient instantiation - legacy outbound HTTP.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  - id: csharp-outbound-webclient-download
+    pattern: $CLIENT.DownloadString(...)
+    message: >
+      WebClient.DownloadString() - outbound HTTP download.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  - id: csharp-outbound-webclient-downloadfile
+    pattern: $CLIENT.DownloadFile(...)
+    message: >
+      WebClient.DownloadFile() - downloading remote file.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  - id: csharp-outbound-webclient-uploadstring
+    pattern: $CLIENT.UploadString(...)
+    message: >
+      WebClient.UploadString() - outbound HTTP upload.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: HttpWebRequest ---
+  - id: csharp-outbound-httpwebrequest
+    pattern: WebRequest.Create(...)
+    message: >
+      WebRequest.Create() - outbound HTTP request.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: TcpClient ---
+  - id: csharp-outbound-tcpclient
+    pattern: new TcpClient(...)
+    message: >
+      TcpClient instantiation - raw TCP socket.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: Socket ---
+  - id: csharp-outbound-socket
+    pattern: new Socket(...)
+    message: >
+      Socket instantiation - raw network socket.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: network-inventory
+
+  # --- Process execution ---
+  - id: csharp-suspicious-process-start
+    pattern: Process.Start(...)
+    message: >
+      Process.Start() - external process execution.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: suspicious
+
+  - id: csharp-suspicious-process-new
+    pattern: new Process(...)
+    message: >
+      Process instantiation - may execute external commands.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: suspicious
+
+  # --- Dynamic code execution ---
+  - id: csharp-suspicious-assembly-load
+    pattern: Assembly.Load(...)
+    message: >
+      Assembly.Load() - loading assembly dynamically, possible code injection.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: suspicious
+
+  - id: csharp-suspicious-assembly-loadfrom
+    pattern: Assembly.LoadFrom(...)
+    message: >
+      Assembly.LoadFrom() - loading assembly from path/URL.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: suspicious
+
+  - id: csharp-suspicious-assembly-loadfile
+    pattern: Assembly.LoadFile(...)
+    message: >
+      Assembly.LoadFile() - loading assembly from file.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: suspicious
+
+  - id: csharp-suspicious-csharpcodeprovider
+    pattern: new CSharpCodeProvider(...)
+    message: >
+      CSharpCodeProvider - runtime C# compilation, possible code injection.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: suspicious
+
+  - id: csharp-suspicious-invoke
+    pattern: $OBJ.Invoke(...)
+    message: >
+      Reflection Invoke() - dynamic method invocation.
+    severity: WARNING
+    languages: [csharp]
+    metadata:
+      category: suspicious
+
+  # --- Backdoor: download and execute ---
+  - id: csharp-backdoor-download-execute
+    patterns:
+      - pattern: |
+          $CLIENT.DownloadFile($URL, $PATH);
+          ...
+          Process.Start($PATH, ...);
+    message: >
+      Download file then execute - classic dropper pattern.
+    severity: ERROR
+    languages: [csharp]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: base64 decode + load assembly ---
+  - id: csharp-backdoor-base64-assembly
+    pattern: Assembly.Load(Convert.FromBase64String(...))
+    message: >
+      Loading base64-decoded assembly - obfuscated code loading.
+    severity: ERROR
+    languages: [csharp]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: PowerShell execution ---
+  - id: csharp-backdoor-powershell
+    patterns:
+      - pattern: Process.Start("powershell", ...)
+    message: >
+      Launching PowerShell from C# - common attack vector.
+    severity: ERROR
+    languages: [csharp]
+    metadata:
+      category: backdoor
+      confidence: MEDIUM
+
+  - id: csharp-backdoor-cmd
+    patterns:
+      - pattern: Process.Start("cmd", ...)
+    message: >
+      Launching cmd.exe from C# - command execution.
+    severity: ERROR
+    languages: [csharp]
+    metadata:
+      category: backdoor
+      confidence: MEDIUM
+
+  # --- Serialization dangers ---
+  - id: csharp-suspicious-binaryformatter
+    pattern: new BinaryFormatter(...)
+    message: >
+      BinaryFormatter - insecure deserialization, known RCE vector.
+    severity: ERROR
+    languages: [csharp]
+    metadata:
+      category: backdoor
+      confidence: HIGH

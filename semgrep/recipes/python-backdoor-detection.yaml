@@ -1,0 +1,324 @@
+rules:
+  # ============================================================
+  # PYTHON SUPPLY CHAIN & BACKDOOR DETECTION
+  # Detect outbound network calls and backdoor patterns in Python
+  #
+  # Usage:
+  #   semgrep --config python-backdoor-detection.yaml .
+  # ============================================================
+
+  # --- Outbound network: requests ---
+  - id: python-outbound-requests-get
+    pattern: requests.get(...)
+    message: >
+      requests.get() - outbound HTTP GET.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  - id: python-outbound-requests-post
+    pattern: requests.post(...)
+    message: >
+      requests.post() - outbound HTTP POST.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  - id: python-outbound-requests-put
+    pattern: requests.put(...)
+    message: >
+      requests.put() - outbound HTTP PUT.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  - id: python-outbound-requests-session
+    pattern: requests.Session(...)
+    message: >
+      requests.Session() - HTTP session creation.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: urllib ---
+  - id: python-outbound-urllib-urlopen
+    pattern: urllib.request.urlopen(...)
+    message: >
+      urllib.request.urlopen() - outbound HTTP request.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  - id: python-outbound-urllib-urlretrieve
+    pattern: urllib.request.urlretrieve(...)
+    message: >
+      urllib.request.urlretrieve() - downloading remote file.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: httpx ---
+  - id: python-outbound-httpx-get
+    pattern: httpx.get(...)
+    message: >
+      httpx.get() - outbound HTTP GET.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  - id: python-outbound-httpx-post
+    pattern: httpx.post(...)
+    message: >
+      httpx.post() - outbound HTTP POST.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  - id: python-outbound-httpx-client
+    pattern: httpx.Client(...)
+    message: >
+      httpx.Client() - HTTP client instantiation.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  - id: python-outbound-httpx-asyncclient
+    pattern: httpx.AsyncClient(...)
+    message: >
+      httpx.AsyncClient() - async HTTP client.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: aiohttp ---
+  - id: python-outbound-aiohttp-session
+    pattern: aiohttp.ClientSession(...)
+    message: >
+      aiohttp.ClientSession() - async HTTP client.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: socket ---
+  - id: python-outbound-socket
+    pattern: socket.socket(...)
+    message: >
+      socket.socket() - raw network socket.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  - id: python-outbound-socket-connect
+    pattern: $SOCK.connect(...)
+    message: >
+      socket.connect() - outbound network connection.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: network-inventory
+
+  # --- Dynamic code execution ---
+  - id: python-suspicious-eval
+    pattern: eval(...)
+    message: >
+      eval() - dynamic code execution.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  - id: python-suspicious-exec
+    pattern: exec(...)
+    message: >
+      exec() - dynamic code execution.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  - id: python-suspicious-compile
+    pattern: compile(...)
+    message: >
+      compile() - compiling code for later execution.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  # --- Shell execution ---
+  - id: python-suspicious-os-system
+    pattern: os.system(...)
+    message: >
+      os.system() - shell command execution.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  - id: python-suspicious-os-popen
+    pattern: os.popen(...)
+    message: >
+      os.popen() - shell command execution with pipe.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  - id: python-suspicious-subprocess-run
+    pattern: subprocess.run(...)
+    message: >
+      subprocess.run() - external process execution.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  - id: python-suspicious-subprocess-popen
+    pattern: subprocess.Popen(...)
+    message: >
+      subprocess.Popen() - external process execution.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  - id: python-suspicious-subprocess-call
+    pattern: subprocess.call(...)
+    message: >
+      subprocess.call() - external process execution.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  - id: python-suspicious-subprocess-check-output
+    pattern: subprocess.check_output(...)
+    message: >
+      subprocess.check_output() - external process execution.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  # --- Deserialization ---
+  - id: python-backdoor-pickle-loads
+    pattern: pickle.loads(...)
+    message: >
+      pickle.loads() - insecure deserialization, known RCE vector.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  - id: python-backdoor-pickle-load
+    pattern: pickle.load(...)
+    message: >
+      pickle.load() - insecure deserialization, known RCE vector.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  - id: python-backdoor-shelve-open
+    pattern: shelve.open(...)
+    message: >
+      shelve.open() uses pickle internally - insecure deserialization.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: backdoor
+      confidence: MEDIUM
+
+  # --- Backdoor: eval with base64 ---
+  - id: python-backdoor-eval-base64
+    pattern: eval(base64.b64decode(...))
+    message: >
+      eval(base64.b64decode()) - obfuscated code execution.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  - id: python-backdoor-exec-base64
+    pattern: exec(base64.b64decode(...))
+    message: >
+      exec(base64.b64decode()) - obfuscated code execution.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: exec with compile ---
+  - id: python-backdoor-exec-compile
+    patterns:
+      - pattern: |
+          $CODE = base64.b64decode(...)
+          ...
+          exec(compile($CODE, ...))
+    message: >
+      Compile and execute base64-decoded code - obfuscated backdoor.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: dynamic import ---
+  - id: python-suspicious-importlib
+    pattern: importlib.import_module(...)
+    message: >
+      Dynamic import - may load attacker-controlled modules.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  - id: python-suspicious-import-builtin
+    pattern: __import__(...)
+    message: >
+      __import__() - dynamic module import.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious
+
+  # --- Backdoor: env exfiltration ---
+  - id: python-backdoor-env-exfil
+    patterns:
+      - pattern: |
+          $DATA = os.environ
+          ...
+          requests.post($URL, ...)
+    message: >
+      os.environ sent via HTTP POST - environment variable exfiltration.
+    severity: ERROR
+    languages: [python]
+    metadata:
+      category: backdoor
+      confidence: HIGH
+
+  # --- Backdoor: ctypes ---
+  - id: python-suspicious-ctypes-cdll
+    pattern: ctypes.CDLL(...)
+    message: >
+      ctypes.CDLL() - loading native shared library.
+    severity: WARNING
+    languages: [python]
+    metadata:
+      category: suspicious

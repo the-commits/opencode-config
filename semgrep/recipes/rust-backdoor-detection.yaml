@@ -1,0 +1,168 @@
+rules:
+  # ============================================================
+  # RUST SUPPLY CHAIN & BACKDOOR DETECTION
+  # Detect outbound network calls and backdoor patterns in Rust
+  #
+  # Usage:
+  #   semgrep --config rust-backdoor-detection.yaml src/
+  # ============================================================
+
+  # --- Outbound network: reqwest ---
+  - id: rust-outbound-reqwest-get
+    pattern: reqwest::get(...)
+    message: >
+      reqwest::get() - outbound HTTP GET.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
+
+  - id: rust-outbound-reqwest-client-new
+    pattern: reqwest::Client::new(...)
+    message: >
+      reqwest::Client::new() - HTTP client instantiation.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
+
+  - id: rust-outbound-reqwest-client-get
+    pattern: $CLIENT.get(...)
+    message: >
+      HTTP client get() - outbound HTTP GET.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
+
+  - id: rust-outbound-reqwest-client-post
+    pattern: $CLIENT.post(...)
+    message: >
+      HTTP client post() - outbound HTTP POST.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: hyper ---
+  - id: rust-outbound-hyper-client
+    pattern: hyper::Client::new(...)
+    message: >
+      hyper::Client::new() - low-level HTTP client.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: TcpStream ---
+  - id: rust-outbound-tcpstream
+    pattern: TcpStream::connect(...)
+    message: >
+      TcpStream::connect() - raw TCP connection.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
+
+  # --- Outbound network: UdpSocket ---
+  - id: rust-outbound-udpsocket
+    pattern: UdpSocket::bind(...)
+    message: >
+      UdpSocket::bind() - UDP socket.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
+
+  # --- Process execution ---
+  - id: rust-suspicious-command-new
+    pattern: Command::new(...)
+    message: >
+      Command::new() - external process execution.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: suspicious
+
+  - id: rust-suspicious-command-output
+    pattern: $CMD.output(...)
+    message: >
+      Command.output() - executing external process.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: suspicious
+
+  - id: rust-suspicious-command-spawn
+    pattern: $CMD.spawn(...)
+    message: >
+      Command.spawn() - spawning external process.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: suspicious
+
+  # --- Unsafe code ---
+  - id: rust-suspicious-unsafe-block
+    pattern: unsafe { ... }
+    message: >
+      unsafe block - bypasses Rust safety guarantees.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: suspicious
+
+  # --- Dynamic library loading ---
+  - id: rust-suspicious-libloading
+    pattern: Library::new(...)
+    message: >
+      Dynamic library loading - loading shared object at runtime.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: suspicious
+
+  # --- Backdoor: download and write file ---
+  - id: rust-backdoor-download-write
+    patterns:
+      - pattern: |
+          $RESP = reqwest::get($URL).await;
+          ...
+          std::fs::write($PATH, ...);
+    message: >
+      Download remote content and write to file - possible dropper.
+    severity: ERROR
+    languages: [rust]
+    metadata:
+      category: backdoor
+      confidence: MEDIUM
+
+  # --- FFI ---
+  - id: rust-suspicious-extern-fn
+    pattern: |
+      extern "C" { ... }
+    message: >
+      extern "C" block - foreign function interface declarations.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: suspicious
+
+  # --- Environment variable access ---
+  - id: rust-outbound-env-var
+    pattern: std::env::var(...)
+    message: >
+      Reading environment variable.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
+
+  - id: rust-outbound-env-vars
+    pattern: std::env::vars(...)
+    message: >
+      Reading all environment variables.
+    severity: WARNING
+    languages: [rust]
+    metadata:
+      category: network-inventory
