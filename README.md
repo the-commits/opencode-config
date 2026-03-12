@@ -4,6 +4,16 @@ Security-hardened [OpenCode](https://opencode.ai) configuration with supply chai
 
 ## What's in the box
 
+### Env Protection Plugin
+
+`plugins/env-protection.ts` -- Prevents the agent from ever reading `.env` files to avoid secrets leaking into logs or context.
+
+- Blocks `read`, `edit`, `write`, `patch` on any `.env` file
+- Blocks `bash` commands that `cat`/`head`/`tail`/`source` `.env` files
+- Blocks `grep` targeting `.env` file patterns
+- Allows `.env.example`, `.env.sample`, `.env.template`
+- Throws a clear error explaining why and what to use instead
+
 ### Supply Chain Guard Plugin
 
 `plugins/supply-chain-guard.ts` -- An OpenCode plugin that automatically scans `node_modules` after any package install/update command.
