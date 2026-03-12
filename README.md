@@ -1,6 +1,6 @@
 # opencode-config
 
-A fierce, security-hardened [OpenCode](https://opencode.ai) configuration altogether. Supply chain protection, custom Semgrep rules, env file guarding, and secret scanning -- the whole lot.
+An opinionated [OpenCode](https://opencode.ai) configuration with security baked in. Plugins, Semgrep rules, env file guarding, secret scanning, and agent guidelines -- the whole lot.
 
 ## What's in the box
 
@@ -74,11 +74,11 @@ If you've already got a config you'd rather not disturb, clone this into a separ
 
 ```bash
 # Clone into a dedicated directory
-git clone https://github.com/the-commits/opencode-config.git ~/.config/opencode-hardened
-cd ~/.config/opencode-hardened && npm install
+git clone https://github.com/the-commits/opencode-config.git ~/.config/opencode-config
+cd ~/.config/opencode-config && npm install
 
 # Tell OpenCode to load from it (add to your .bashrc/.zshrc)
-export OPENCODE_CONFIG_DIR=~/.config/opencode-hardened
+export OPENCODE_CONFIG_DIR=~/.config/opencode-config
 ```
 
 With this approach your existing `~/.config/opencode/opencode.json` stays untouched. The `OPENCODE_CONFIG_DIR` directory is loaded after the global config, so its plugins, agents, and tools are merged in -- and can override if needed.
