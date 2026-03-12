@@ -93,23 +93,23 @@ git clone https://github.com/<you>/opencode-config.git ~/.config/opencode-config
 cd ~/.config/opencode-config
 
 # Check out the latest release
-git checkout v1.1.0
+git checkout v1.1.1
 
 # Install dependencies
 npm install
 
-# Tell OpenCode to load from it
+# Tell OpenCode to use this config
 # bash/zsh: add to ~/.bashrc or ~/.zshrc
-export OPENCODE_CONFIG_DIR=~/.config/opencode-config
+export OPENCODE_CONFIG=~/.config/opencode-config/opencode.jsonc
 
 # fish: add to ~/.config/fish/config.fish
-set -gx OPENCODE_CONFIG_DIR ~/.config/opencode-config
+set -gx OPENCODE_CONFIG ~/.config/opencode-config/opencode.jsonc
 
 # Windows PowerShell: add to your $PROFILE
-$env:OPENCODE_CONFIG_DIR = "$env:USERPROFILE\.config\opencode-config"
+$env:OPENCODE_CONFIG = "$env:USERPROFILE\.config\opencode-config\opencode.jsonc"
 ```
 
-If you've no existing config, you can clone straight into `~/.config/opencode` instead -- no `OPENCODE_CONFIG_DIR` needed.
+If you've no existing config, you can clone straight into `~/.config/opencode` instead -- no `OPENCODE_CONFIG` needed.
 
 #### Updating
 
@@ -118,7 +118,7 @@ Pull new releases from upstream and check out the tag:
 ```bash
 cd ~/.config/opencode-config
 git fetch --tags
-git checkout v1.1.0
+git checkout v1.1.1
 npm install
 ```
 

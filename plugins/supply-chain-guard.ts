@@ -233,9 +233,9 @@ const ECOSYSTEMS: EcosystemConfig[] = [
 // Config paths
 // =============================================================================
 
-const CONFIG_DIR =
-  process.env.OPENCODE_CONFIG_DIR ||
-  path.join(process.env.HOME || "~", ".config", "opencode")
+const CONFIG_DIR = process.env.OPENCODE_CONFIG
+  ? path.dirname(process.env.OPENCODE_CONFIG)
+  : path.join(process.env.HOME || "~", ".config", "opencode")
 const SEMGREP_RECIPES = path.join(CONFIG_DIR, "semgrep", "recipes")
 const CACHE_FILE = path.join(CONFIG_DIR, ".supply-chain-guard-cache.json")
 
