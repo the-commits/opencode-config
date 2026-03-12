@@ -1,26 +1,83 @@
 #!/bin/sh
 set +e
 
+# Pre-push secret scanner
+#
+# Two-pass scan on git-tracked files:
+#   1. Keyword-context patterns — catches "api_key = <value>" style leaks
+#   2. Prefix-based patterns — catches secrets by their distinctive format
+#      (e.g. AKIA*, ghp_*, sk-proj-*). Derived from gitleaks (MIT) and
+#      GitHub secret scanning. See secrets/ATTRIBUTION.md for details.
+#
 # rg exit codes: 0 = matches found, 1 = no matches, 2+ = error
 # We WANT no matches (exit 1), so finding matches (exit 0) means secrets leaked.
 # All output goes to stderr to avoid corrupting the TUI.
 # set +e required: husky enables set -e, but rg exits 1 on no matches.
 
-# Only scan files tracked by git -- these are what actually gets pushed.
-MATCHES=$(git ls-files -z | xargs -0 rg -in --column \
+# Resolve config dir (where this hook lives: <config>/.husky/pre-push)
+HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONFIG_DIR="$(dirname "$HOOK_DIR")"
+PATTERN_FILE="${CONFIG_DIR}/secrets/secret-patterns.txt"
+CACHE_TEST="${CONFIG_DIR}/tests/cache-test.ts"
+
+# --- Unit tests ---
+# Run cache logic tests if bun is available. Failure blocks push.
+if [ -f "$CACHE_TEST" ] && command -v bun >/dev/null 2>&1; then
+  bun run "$CACHE_TEST" 2>&1 | sed 's/^/  /' >&2
+  if [ "${PIPESTATUS[0]:-$?}" -ne 0 ]; then
+    echo "BLOCKED: Cache unit tests failed." >&2
+    exit 1
+  fi
+fi
+
+FOUND_SECRETS=0
+
+# --- Pass 1: keyword-context patterns ---
+# Catches: api_key = "...", password: "...", etc.
+KEYWORD_MATCHES=$(git ls-files -z | xargs -0 rg -in --column \
   '(api.?key|secret|token|password|credential|private.?key)\s*[:=]\s*["\x27]?[A-Za-z0-9_\-/+=]{8,}' \
   2>/dev/null)
-RG_EXIT=$?
+KEYWORD_EXIT=$?
 
-if [ "$RG_EXIT" -eq 0 ]; then
+if [ "$KEYWORD_EXIT" -eq 0 ]; then
+  FOUND_SECRETS=1
   cat >&2 <<EOF
 
---- Pre-push: Secret scan FAILED ---
+--- Pre-push: Keyword-context matches ---
 
-$MATCHES
+$KEYWORD_MATCHES
 
+EOF
+fi
+
+# --- Pass 2: prefix-based patterns ---
+# Catches: AKIA*, ghp_*, sk-proj-*, private key headers, etc.
+if [ -f "$PATTERN_FILE" ]; then
+  PREFIX_MATCHES=$(git ls-files -z | xargs -0 rg -n --column \
+    -f "$PATTERN_FILE" \
+    2>/dev/null)
+  PREFIX_EXIT=$?
+
+  if [ "$PREFIX_EXIT" -eq 0 ]; then
+    FOUND_SECRETS=1
+    cat >&2 <<EOF
+
+--- Pre-push: Prefix-based matches ---
+
+$PREFIX_MATCHES
+
+EOF
+  fi
+else
+  echo "Warning: pattern file not found at ${PATTERN_FILE}" >&2
+fi
+
+# --- Verdict ---
+if [ "$FOUND_SECRETS" -eq 1 ]; then
+  cat >&2 <<EOF
 BLOCKED: Potential secrets detected!
-If these are false positives, push with: git push --no-verify
+Review the matches above. If these are false positives, push with:
+  git push --no-verify
 
 EOF
   exit 1

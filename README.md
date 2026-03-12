@@ -2,6 +2,8 @@
 
 An opinionated [OpenCode](https://opencode.ai) configuration with security baked in. Plugins, Semgrep rules, env file guarding, secret scanning, and agent guidelines -- the whole lot.
 
+> **Quick start** -- see [Setup](#setup) to get going in two minutes.
+
 ## What's in the box
 
 ### Env Protection Plugin
@@ -16,21 +18,23 @@ An opinionated [OpenCode](https://opencode.ai) configuration with security baked
 
 ### Supply Chain Guard Plugin
 
-`plugins/supply-chain-guard.ts` -- An OpenCode plugin that gives your dependency directories a good once-over after any package install or update. Supports nine ecosystems.
+`plugins/supply-chain-guard.ts` -- Automatically scans your project after any package install or update. Covers nine ecosystems, scanning both vendor directories and your own source code.
 
-- **JS/TS**: npm, pnpm, yarn, bun -- scans `node_modules/`
-- **PHP**: composer -- scans `vendor/`
-- **C#/.NET**: dotnet, nuget -- scans project source
-- **Ruby**: bundler, gem -- scans `vendor/bundle/`
-- **Java**: maven (mvn), gradle -- scans project source
-- **Python**: pip, pip3, poetry, pipenv, uv -- scans project source
-- **Rust**: cargo -- scans project source
-- **Go**: go modules -- scans project source
-- **C/C++**: conan, vcpkg -- scans project source
+| Ecosystem | Package Managers | Scans |
+|---|---|---|
+| **JS/TS** | npm, pnpm, yarn, bun | `node_modules/` + project source |
+| **PHP** | composer | `vendor/` + project source |
+| **Ruby** | bundler, gem | `vendor/bundle/` + project source |
+| **C#/.NET** | dotnet, nuget | project source |
+| **Java** | maven (mvn), gradle | project source |
+| **Python** | pip, pip3, poetry, pipenv, uv | project source |
+| **Rust** | cargo | project source |
+| **Go** | go modules | project source |
+| **C/C++** | conan, vcpkg | project source |
 
 How it works:
 - Intercepts install/update commands via `tool.execute.before/after` hooks
-- Runs Semgrep with custom security recipes against the appropriate target
+- Runs Semgrep with custom security recipes against the appropriate targets
 - Smart caching: hashes the lockfile and recipe files, skips the scan if nothing's changed
 - Persistent cache survives restarts (`.supply-chain-guard-cache.json`)
 - Groups findings by rule, shows details inline in the agent's output
@@ -45,35 +49,27 @@ How it works:
 | `php-outbound-network-inventory.yaml` | 29 | PHP outbound network calls (cURL, file_get_contents, fopen, sockets, Guzzle, Symfony HttpClient, WordPress HTTP API, SoapClient, DNS, mail, header redirects) |
 | `npm-backdoor-detection.yaml` | 13 | JS/TS supply chain backdoor patterns (env exfiltration, eval+base64, reverse shells, DNS exfil, obfuscated require/exec, curl/wget in postinstall) |
 | `php-backdoor-detection.yaml` | 14 | PHP backdoor patterns (eval+base64, webshell writes, shell_exec, proc_open, dynamic include/require, variable functions) |
-| `csharp-backdoor-detection.yaml` | 24 | C# outbound (HttpClient, WebClient, TcpClient, Socket) + backdoors (Assembly.Load, BinaryFormatter, PowerShell launch, download+execute) |
-| `ruby-backdoor-detection.yaml` | 29 | Ruby outbound (Net::HTTP, HTTParty, Faraday, RestClient, TCPSocket) + backdoors (Marshal.load, YAML.load, eval+base64) + Rails (constantize, render inline) |
-| `java-backdoor-detection.yaml` | 26 | Java outbound (HttpClient, OkHttp, Socket, RestTemplate, WebClient) + backdoors (ObjectInputStream, JNDI lookup, ScriptEngine, URLClassLoader) |
-| `python-backdoor-detection.yaml` | 32 | Python outbound (requests, urllib, httpx, aiohttp, socket) + backdoors (pickle, eval+base64, exec+compile, env exfil, ctypes) |
-| `rust-backdoor-detection.yaml` | 16 | Rust outbound (reqwest, hyper, TcpStream) + suspicious (Command, unsafe blocks, FFI, dynamic library loading) |
-| `go-backdoor-detection.yaml` | 24 | Go outbound (net/http, net.Dial, gRPC, DNS) + backdoors (init() abuse, download+exec, env exfil, plugin.Open, CGo) |
-| `c-cpp-backdoor-detection.yaml` | 24 | C/C++ outbound (socket, libcurl, getaddrinfo) + suspicious (system, execve, dlopen, mmap, VirtualAlloc, Boost.Asio) |
+| `csharp-backdoor-detection.yaml` | 24 | C# outbound + backdoors (HttpClient, WebClient, TcpClient, Socket, Assembly.Load, BinaryFormatter, PowerShell launch, download+execute) |
+| `ruby-backdoor-detection.yaml` | 29 | Ruby outbound + backdoors (Net::HTTP, HTTParty, Faraday, RestClient, TCPSocket, Marshal.load, YAML.load, eval+base64) + Rails (constantize, render inline) |
+| `java-backdoor-detection.yaml` | 26 | Java outbound + backdoors (HttpClient, OkHttp, Socket, RestTemplate, WebClient, ObjectInputStream, JNDI lookup, ScriptEngine, URLClassLoader) |
+| `python-backdoor-detection.yaml` | 32 | Python outbound + backdoors (requests, urllib, httpx, aiohttp, socket, pickle, eval+base64, exec+compile, env exfil, ctypes) |
+| `rust-backdoor-detection.yaml` | 16 | Rust outbound + suspicious (reqwest, hyper, TcpStream, Command, unsafe blocks, FFI, dynamic library loading) |
+| `go-backdoor-detection.yaml` | 24 | Go outbound + backdoors (net/http, net.Dial, gRPC, DNS, init() abuse, download+exec, env exfil, plugin.Open, CGo) |
+| `c-cpp-backdoor-detection.yaml` | 24 | C/C++ outbound + suspicious (socket, libcurl, getaddrinfo, system, execve, dlopen, mmap, VirtualAlloc, Boost.Asio) |
 
 ### Pre-Push Secret Scanning
 
-`.husky/pre-push` -- A git hook that has a good rummage through your tracked files for leaked secrets before you push. Uses ripgrep.
+`.husky/pre-push` -- A git hook that scans your tracked files for leaked secrets before you push. Two-pass approach using ripgrep:
 
-- Catches API keys, tokens, passwords, credentials, private keys
-- Only scans git-tracked files (what actually gets pushed, like)
+1. **Keyword-context scan** -- catches `api_key = "..."`, `password: "..."`, and similar assignment patterns
+2. **Prefix-based scan** -- catches secrets by their distinctive format (AWS `AKIA*`, GitHub `ghp_*`, Stripe `sk_live_*`, private key headers, JWTs, and 40+ other provider prefixes)
+
+The prefix patterns live in `secrets/secret-patterns.txt` (44 patterns covering AWS, GCP, OpenAI, Anthropic, Stripe, GitHub, GitLab, Slack, SendGrid, npm, PyPI, Hugging Face, Fly.io, Vault, and more). See [Third-party attribution](#third-party-attribution) for sources.
+
+- Only scans git-tracked files (what actually gets pushed)
 - Reports `file:line:column` for each match
-- All output to stderr so it doesn't make a hames of the OpenCode TUI
+- All output to stderr so it doesn't interfere with the OpenCode TUI
 - Bypass with `git push --no-verify` if you're sure of yourself
-
-### GPG Commit Signing
-
-All commits are GPG-signed. The git config is set globally:
-
-```bash
-git config --global user.signingkey <your-key-id>
-git config --global commit.gpgsign true
-git config --global tag.gpgSign true
-```
-
-Don't forget to add your public key to GitHub under Settings → SSH and GPG keys.
 
 ### Agent Guidelines
 
@@ -97,7 +93,7 @@ git clone https://github.com/<you>/opencode-config.git ~/.config/opencode-config
 cd ~/.config/opencode-config
 
 # Check out the latest release
-git checkout v1.0.1
+git checkout v1.1.0
 
 # Install dependencies
 npm install
@@ -122,7 +118,7 @@ Pull new releases from upstream and check out the tag:
 ```bash
 cd ~/.config/opencode-config
 git fetch --tags
-git checkout v1.0.1
+git checkout v1.1.0
 npm install
 ```
 
@@ -136,6 +132,10 @@ cp plugins/*.ts ~/.config/opencode/plugins/
 
 # Or just the semgrep recipes
 cp -r semgrep/ ~/.config/opencode/semgrep/
+
+# Or the secret scanning patterns + hook
+cp -r secrets/ ~/.config/opencode/secrets/
+cp .husky/pre-push ~/.config/opencode/.husky/pre-push
 ```
 
 ---
@@ -165,14 +165,22 @@ semgrep --config ~/.config/opencode/semgrep/recipes/ \
   --exclude='!vendor' \
   vendor/bundle/
 
-# All other ecosystems (Python, Java, C#, Go, Rust, C/C++)
-# Deps live in global caches, so scan project source:
+# Project source (all ecosystems)
 semgrep --config ~/.config/opencode/semgrep/recipes/ .
 ```
 
 Key flags:
 - `--no-git-ignore` -- otherwise `.gitignore` excludes vendor dirs
 - `--exclude='!node_modules'` / `--exclude='!vendor'` -- overrides Semgrep's built-in `.semgrepignore` which skips these
+
+## Third-party attribution
+
+The pre-push secret scanning patterns in `secrets/secret-patterns.txt` were derived from and validated against:
+
+- **[gitleaks](https://github.com/gitleaks/gitleaks)** (MIT licence, pinned to v8.30.1) -- the leading open-source secret detection tool. Run `scripts/fetch-gitleaks-config.sh` to download the full `gitleaks.toml` for reference.
+- **[GitHub secret scanning](https://docs.github.com/en/code-security/secret-scanning)** -- GitHub's documentation on supported secret scanning patterns and partner integrations.
+
+See `secrets/ATTRIBUTION.md` for full details.
 
 ## Licence
 

@@ -7,24 +7,37 @@ import path from "node:path"
  * Supply Chain Guard Plugin
  *
  * Intercepts bash tool calls that run package manager install/update commands
- * and automatically runs Semgrep security recipes on dependency directories afterward.
+ * and automatically runs Semgrep security recipes afterward. Each ecosystem
+ * runs one or more scan passes: vendor directories (node_modules, vendor, etc.)
+ * AND project source code, so backdoors are caught in both dependencies and
+ * your own code.
+ *
  * Uses lockfile + recipes hashing to skip scans when nothing changed.
  *
  * Supported ecosystems:
- *   JS/TS  - npm, pnpm, yarn, bun
- *   PHP    - composer
- *   C#     - dotnet, nuget
- *   Ruby   - bundler, gem
- *   Java   - maven (mvn), gradle
- *   Python - pip, pip3, poetry, pipenv, uv
- *   Rust   - cargo
- *   Go     - go modules
- *   C/C++  - conan, vcpkg
+ *   JS/TS  - npm, pnpm, yarn, bun       (deps + source)
+ *   PHP    - composer                    (deps + source)
+ *   C#     - dotnet, nuget               (source)
+ *   Ruby   - bundler, gem                (deps + source)
+ *   Java   - maven (mvn), gradle         (source)
+ *   Python - pip, pip3, poetry, pipenv, uv (source)
+ *   Rust   - cargo                       (source)
+ *   Go     - go modules                  (source)
+ *   C/C++  - conan, vcpkg                (source)
  */
 
 // =============================================================================
 // Ecosystem configurations
 // =============================================================================
+
+interface ScanPass {
+  /** Label for this scan pass (shown in output headers) */
+  label: string
+  /** Directory to scan with semgrep (relative to workdir) */
+  target: string
+  /** Extra semgrep flags needed for this scan pass */
+  flags: string[]
+}
 
 interface EcosystemConfig {
   /** Human-readable name */
@@ -33,10 +46,8 @@ interface EcosystemConfig {
   installPattern: RegExp
   /** Lockfiles to hash for cache invalidation (checked in order, first found wins) */
   lockfiles: string[]
-  /** Directory to scan with semgrep (relative to workdir) */
-  scanTarget: string
-  /** Extra semgrep flags needed for this ecosystem */
-  semgrepFlags: string[]
+  /** One or more scan passes to run after install (vendor dir + project source, or just source) */
+  scanPasses: ScanPass[]
 }
 
 const ECOSYSTEMS: EcosystemConfig[] = [
@@ -51,9 +62,19 @@ const ECOSYSTEMS: EcosystemConfig[] = [
       "pnpm-lock.yaml",
       "bun.lockb",
     ],
-    scanTarget: "node_modules/",
-    // node_modules is gitignored AND semgrepignored by default
-    semgrepFlags: ["--no-git-ignore", "--exclude=!node_modules"],
+    scanPasses: [
+      {
+        label: "dependencies",
+        target: "node_modules/",
+        // node_modules is gitignored AND semgrepignored by default
+        flags: ["--no-git-ignore", "--exclude=!node_modules"],
+      },
+      {
+        label: "source",
+        target: ".",
+        flags: [],
+      },
+    ],
   },
 
   // --- PHP ---
@@ -62,8 +83,18 @@ const ECOSYSTEMS: EcosystemConfig[] = [
     installPattern:
       /\bcomposer\s+(?:install|require|update|dump-autoload)(?:\s|$|;|&&|\|)/,
     lockfiles: ["composer.lock"],
-    scanTarget: "vendor/",
-    semgrepFlags: ["--no-git-ignore", "--exclude=!vendor"],
+    scanPasses: [
+      {
+        label: "dependencies",
+        target: "vendor/",
+        flags: ["--no-git-ignore", "--exclude=!vendor"],
+      },
+      {
+        label: "source",
+        target: ".",
+        flags: [],
+      },
+    ],
   },
 
   // --- C# / .NET ---
@@ -75,9 +106,14 @@ const ECOSYSTEMS: EcosystemConfig[] = [
       "packages.lock.json",
       "obj/project.assets.json",
     ],
-    scanTarget: ".",
-    // .NET stores packages globally in ~/.nuget — scan the project source instead
-    semgrepFlags: [],
+    scanPasses: [
+      {
+        label: "source",
+        target: ".",
+        // .NET stores packages globally in ~/.nuget — scan the project source
+        flags: [],
+      },
+    ],
   },
 
   // --- Ruby ---
@@ -86,8 +122,18 @@ const ECOSYSTEMS: EcosystemConfig[] = [
     installPattern:
       /\b(?:bundle\s+(?:install|update|add)|gem\s+install)(?:\s|$|;|&&|\|)/,
     lockfiles: ["Gemfile.lock"],
-    scanTarget: "vendor/bundle/",
-    semgrepFlags: ["--no-git-ignore", "--exclude=!vendor"],
+    scanPasses: [
+      {
+        label: "dependencies",
+        target: "vendor/bundle/",
+        flags: ["--no-git-ignore", "--exclude=!vendor"],
+      },
+      {
+        label: "source",
+        target: ".",
+        flags: [],
+      },
+    ],
   },
 
   // --- Java ---
@@ -101,9 +147,14 @@ const ECOSYSTEMS: EcosystemConfig[] = [
       "build.gradle",
       "build.gradle.kts",
     ],
-    scanTarget: ".",
-    // Java deps go to ~/.m2 or build/libs — scan project source
-    semgrepFlags: [],
+    scanPasses: [
+      {
+        label: "source",
+        target: ".",
+        // Java deps go to ~/.m2 or build/libs — scan project source
+        flags: [],
+      },
+    ],
   },
 
   // --- Python ---
@@ -117,9 +168,14 @@ const ECOSYSTEMS: EcosystemConfig[] = [
       "requirements.txt",
       "uv.lock",
     ],
-    scanTarget: ".",
-    // Python deps go to site-packages — scan project source
-    semgrepFlags: [],
+    scanPasses: [
+      {
+        label: "source",
+        target: ".",
+        // Python deps go to site-packages — scan project source
+        flags: [],
+      },
+    ],
   },
 
   // --- Rust ---
@@ -128,9 +184,14 @@ const ECOSYSTEMS: EcosystemConfig[] = [
     installPattern:
       /\bcargo\s+(?:build|add|update|install|fetch)(?:\s|$|;|&&|\|)/,
     lockfiles: ["Cargo.lock"],
-    scanTarget: ".",
-    // Rust deps go to ~/.cargo or target/ — scan project source
-    semgrepFlags: [],
+    scanPasses: [
+      {
+        label: "source",
+        target: ".",
+        // Rust deps go to ~/.cargo or target/ — scan project source
+        flags: [],
+      },
+    ],
   },
 
   // --- Go ---
@@ -139,9 +200,14 @@ const ECOSYSTEMS: EcosystemConfig[] = [
     installPattern:
       /\bgo\s+(?:get|mod\s+(?:download|tidy)|build|install)(?:\s|$|;|&&|\|)/,
     lockfiles: ["go.sum"],
-    scanTarget: ".",
-    // Go deps go to GOPATH/pkg/mod — scan project source
-    semgrepFlags: [],
+    scanPasses: [
+      {
+        label: "source",
+        target: ".",
+        // Go deps go to GOPATH/pkg/mod — scan project source
+        flags: [],
+      },
+    ],
   },
 
   // --- C/C++ ---
@@ -153,8 +219,13 @@ const ECOSYSTEMS: EcosystemConfig[] = [
       "conan.lock",
       "vcpkg.json",
     ],
-    scanTarget: ".",
-    semgrepFlags: [],
+    scanPasses: [
+      {
+        label: "source",
+        target: ".",
+        flags: [],
+      },
+    ],
   },
 ]
 
@@ -413,72 +484,79 @@ export const SupplyChainGuard: Plugin = async (ctx) => {
           continue
         }
 
-        // Check scan target exists
-        const scanTargetPath = path.join(workdir, eco.scanTarget)
-        try {
-          fs.accessSync(scanTargetPath)
-        } catch {
-          await log(
-            "info",
-            `Scan target ${eco.scanTarget} does not exist in ${workdir}, skipping ${eco.name} scan`,
-          )
-          output.output =
-            (output.output || "") +
-            `\n\n--- Supply Chain Guard (${eco.name}) ---\nSkipped: ${eco.scanTarget} not found.\n`
-          continue
-        }
+        let totalFindings = 0
 
-        await log(
-          "info",
-          `Running Semgrep supply chain scan for ${eco.name} in ${workdir}/${eco.scanTarget}`,
-        )
+        for (const pass of eco.scanPasses) {
+          const passLabel = `${eco.name} / ${pass.label}`
 
-        try {
-          // Build and run semgrep command with ecosystem-specific flags
-          // Using sh -c because the flag set varies per ecosystem.
-          // Paths are single-quoted to handle spaces.
-          const flagStr = eco.semgrepFlags
-            .map((f) => `'${f}'`)
-            .join(" ")
-          const cmd = [
-            "semgrep",
-            "--config",
-            `'${SEMGREP_RECIPES}'`,
-            flagStr,
-            "--json",
-            `'${eco.scanTarget}'`,
-          ]
-            .filter(Boolean)
-            .join(" ")
-
-          const result = await ctx
-            .$`sh -c ${cmd}`
-            .cwd(workdir)
-            .quiet()
-            .nothrow()
-
-          const stdout = result.stdout.toString().trim()
-          const { summary, count } = formatFindings(stdout, eco.name)
-
-          // Update cache
-          if (lockfileHashAfter) {
-            cache[cacheKey] = {
-              lockfileHash: lockfileHashAfter,
-              recipesHash: currentRecipesHash,
-              findingsCount: count,
-              scannedAt: new Date().toISOString().split("T")[0],
-              ecosystem: eco.name,
-            }
-            saveCache(cache)
+          // Check scan target exists
+          const scanTargetPath = path.join(workdir, pass.target)
+          try {
+            fs.accessSync(scanTargetPath)
+          } catch {
+            await log(
+              "info",
+              `Scan target ${pass.target} does not exist in ${workdir}, skipping ${passLabel} scan`,
+            )
+            output.output =
+              (output.output || "") +
+              `\n\n--- Supply Chain Guard (${passLabel}) ---\nSkipped: ${pass.target} not found.\n`
+            continue
           }
 
-          output.output = (output.output || "") + summary
-        } catch (e: any) {
-          const errMsg = e?.message || String(e)
-          await log("warn", `Semgrep scan failed for ${eco.name}: ${errMsg}`)
-          output.output =
-            (output.output || "") +
-            `\n\n--- Supply Chain Guard (${eco.name}) ---\nSemgrep scan failed: ${errMsg.substring(0, 500)}\n`
+          await log(
+            "info",
+            `Running Semgrep supply chain scan for ${passLabel} in ${workdir}/${pass.target}`,
+          )
+
+          try {
+            // Build and run semgrep command with pass-specific flags
+            // Using sh -c because the flag set varies per pass.
+            // Paths are single-quoted to handle spaces.
+            const flagStr = pass.flags
+              .map((f) => `'${f}'`)
+              .join(" ")
+            const cmd = [
+              "semgrep",
+              "--config",
+              `'${SEMGREP_RECIPES}'`,
+              flagStr,
+              "--json",
+              `'${pass.target}'`,
+            ]
+              .filter(Boolean)
+              .join(" ")
+
+            const result = await ctx
+              .$`sh -c ${cmd}`
+              .cwd(workdir)
+              .quiet()
+              .nothrow()
+
+            const stdout = result.stdout.toString().trim()
+            const { summary, count } = formatFindings(stdout, passLabel)
+            totalFindings += count
+
+            output.output = (output.output || "") + summary
+          } catch (e: any) {
+            const errMsg = e?.message || String(e)
+            await log("warn", `Semgrep scan failed for ${passLabel}: ${errMsg}`)
+            output.output =
+              (output.output || "") +
+              `\n\n--- Supply Chain Guard (${passLabel}) ---\nSemgrep scan failed: ${errMsg.substring(0, 500)}\n`
+          }
+        }
+
+        // Update cache after all passes complete
+        if (lockfileHashAfter) {
+          cache[cacheKey] = {
+            lockfileHash: lockfileHashAfter,
+            recipesHash: currentRecipesHash,
+            findingsCount: totalFindings,
+            scannedAt: new Date().toISOString().split("T")[0],
+            ecosystem: eco.name,
+          }
+          saveCache(cache)
         }
       }
     },
