@@ -55,35 +55,46 @@ An opinionated [OpenCode](https://opencode.ai) configuration with security baked
 
 You'll be needing [OpenCode](https://opencode.ai), [Semgrep](https://semgrep.dev), and [ripgrep](https://github.com/BurntSushi/ripgrep).
 
-### Option A: Replace your global config
+### Fork or clone (recommended)
 
-If you haven't got an existing OpenCode config you're attached to, you can clone straight into the default location:
-
-```bash
-# Back up any existing config, just to be safe
-mv ~/.config/opencode ~/.config/opencode.bak
-
-# Clone and install
-git clone https://github.com/the-commits/opencode-config.git ~/.config/opencode
-cd ~/.config/opencode && npm install
-```
-
-### Option B: Keep your existing config (recommended)
-
-If you've already got a config you'd rather not disturb, clone this into a separate directory and point OpenCode at it using `OPENCODE_CONFIG_DIR`. This loads plugins, agents, tools, and recipes from the custom directory on top of your existing setup.
+Fork or clone the repo, check out a release tag, and install. Updates come through git.
 
 ```bash
-# Clone into a dedicated directory
-git clone https://github.com/the-commits/opencode-config.git ~/.config/opencode-config
-cd ~/.config/opencode-config && npm install
+# Fork on GitHub first, then:
+git clone https://github.com/<you>/opencode-config.git ~/.config/opencode-config
+cd ~/.config/opencode-config
 
-# Tell OpenCode to load from it (add to your .bashrc/.zshrc)
+# Check out the latest release
+git checkout v1
+
+# Install dependencies
+npm install
+
+# Tell OpenCode to load from it
+# bash/zsh: add to ~/.bashrc or ~/.zshrc
 export OPENCODE_CONFIG_DIR=~/.config/opencode-config
+
+# fish: add to ~/.config/fish/config.fish
+set -gx OPENCODE_CONFIG_DIR ~/.config/opencode-config
+
+# Windows PowerShell: add to your $PROFILE
+$env:OPENCODE_CONFIG_DIR = "$env:USERPROFILE\.config\opencode-config"
 ```
 
-With this approach your existing `~/.config/opencode/opencode.json` stays untouched. The `OPENCODE_CONFIG_DIR` directory is loaded after the global config, so its plugins, agents, and tools are merged in -- and can override if needed.
+If you've no existing config, you can clone straight into `~/.config/opencode` instead -- no `OPENCODE_CONFIG_DIR` needed.
 
-### Option C: Cherry-pick what you want
+#### Updating
+
+Pull new releases from upstream and check out the tag:
+
+```bash
+cd ~/.config/opencode-config
+git fetch --tags
+git checkout v1   # or a specific version like v1.0.0
+npm install
+```
+
+### Cherry-pick what you want
 
 You can also just grab the bits you fancy:
 
