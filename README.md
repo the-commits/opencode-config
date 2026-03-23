@@ -57,6 +57,16 @@ How it works:
 | `go-backdoor-detection.yaml` | 24 | Go outbound + backdoors (net/http, net.Dial, gRPC, DNS, init() abuse, download+exec, env exfil, plugin.Open, CGo) |
 | `c-cpp-backdoor-detection.yaml` | 24 | C/C++ outbound + suspicious (socket, libcurl, getaddrinfo, system, execve, dlopen, mmap, VirtualAlloc, Boost.Asio) |
 
+### Web Search with Citations
+
+[`opencode-websearch-cited`](https://github.com/ghoulr/opencode-websearch-cited) -- Adds a `websearch_cited` tool that lets the agent do grounded web search with inline citations and a `Sources:` list. Backed by Google Gemini's native search grounding.
+
+Configured in `opencode.jsonc` to use `gemini-2.5-flash` as the search model. The plugin scans `provider` entries in order and picks the first one with `options.websearch_cited.model` set -- Google is first, so Gemini handles all search queries.
+
+- Runs automatically whenever the agent needs current web information
+- Returns answers with `[1]`-style inline citations and a full sources list
+- Disable the plugin before running `opencode auth login` (plugin ordering requirement)
+
 ### Chrome DevTools MCP
 
 `opencode.jsonc` -- Configured to run [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp). Allows the agent to control a headless Chrome instance or connect to a running one via debug port (9222) for advanced web tasks.
