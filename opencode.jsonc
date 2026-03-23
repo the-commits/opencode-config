@@ -26,6 +26,11 @@
 			}
 		},
 		"google": {
+			"options": {
+				"websearch_cited": {
+					"model": "gemini-2.5-flash"
+				}
+			},
 			"models": {
 				"gemini-2.5-flash": {
 					"options": {
