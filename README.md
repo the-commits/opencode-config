@@ -78,7 +78,7 @@ Configured in `opencode.jsonc` to use `gemini-2.5-flash` as the search model. Th
 
 - Runs automatically whenever the agent needs current web information
 - Returns answers with `[1]`-style inline citations and a full sources list
-- Disable the plugin before running `opencode auth login` (plugin ordering requirement)
+- Known issue: loading this plugin after `opencode-gemini-auth` can break `opencode auth login` for Google providers ([upstream #6](https://github.com/ghoulr/opencode-websearch-cited/issues/6)) -- disable the plugin temporarily if you hit this
 
 ### Semgrep MCP
 
@@ -150,9 +150,9 @@ npm install
 Pull new releases from upstream and check out the tag:
 
 ```bash
-cd ~/.config/opencode-config
+cd ~/.config/opencode
 git fetch --tags
-git checkout v1.3.1
+git checkout v1.3.3
 npm install
 ```
 
