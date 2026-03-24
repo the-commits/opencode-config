@@ -57,6 +57,19 @@ How it works:
 | `go-backdoor-detection.yaml` | 24 | Go outbound + backdoors (net/http, net.Dial, gRPC, DNS, init() abuse, download+exec, env exfil, plugin.Open, CGo) |
 | `c-cpp-backdoor-detection.yaml` | 24 | C/C++ outbound + suspicious (socket, libcurl, getaddrinfo, system, execve, dlopen, mmap, VirtualAlloc, Boost.Asio) |
 
+### Agent Modes
+
+Four modes configured in `opencode.jsonc`, each with temperature tuning and permission constraints:
+
+| Mode | Temperature | Write access | Prompt |
+|---|---|---|---|
+| `build` | 0.0 | Full | Default |
+| `plan` | 0.1 | Read-only | Default |
+| `analyze` | 0.1 | Read-only | `prompts/analysis.txt` |
+| `brainstorm` | 0.7 | Read-only | `prompts/brainstorm.txt` |
+
+All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field — read-only modes deny `bash`, `edit`, and `write`.
+
 ### Web Search with Citations
 
 [`opencode-websearch-cited`](https://github.com/ghoulr/opencode-websearch-cited) -- Adds a `websearch_cited` tool that lets the agent do grounded web search with inline citations and a `Sources:` list. Backed by Google Gemini's native search grounding.
@@ -67,12 +80,23 @@ Configured in `opencode.jsonc` to use `gemini-2.5-flash` as the search model. Th
 - Returns answers with `[1]`-style inline citations and a full sources list
 - Disable the plugin before running `opencode auth login` (plugin ordering requirement)
 
+### Semgrep MCP
+
+`opencode.jsonc` -- Configured to run `semgrep mcp` as a local MCP server. Gives the agent direct access to Semgrep's scanning capabilities as tools, on top of the automatic supply chain scanning the plugin already does.
+
+Available tools: `semgrep_semgrep_scan`, `semgrep_semgrep_scan_with_custom_rule`, `semgrep_semgrep_findings`, `semgrep_semgrep_scan_supply_chain`, `semgrep_semgrep_rule_schema`, `semgrep_get_supported_languages`, `semgrep_get_abstract_syntax_tree`.
+
+Requires Semgrep to be installed and authenticated (`semgrep login`).
+
 ### Chrome DevTools MCP
 
-`opencode.jsonc` -- Configured to run [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp). Allows the agent to control a headless Chrome instance or connect to a running one via debug port (9222) for advanced web tasks.
+`opencode.jsonc` -- Configured to run [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) via `npx` (requires Node.js). Gives the agent a full set of browser automation and inspection tools.
 
-- Runs via `npx` (requires Node.js)
-- Can inspect DOM, network, console, and run audits
+- Takes screenshots, navigates pages, clicks, fills forms, types text
+- Inspects DOM via accessibility tree snapshots
+- Monitors network requests and console messages
+- Runs Lighthouse audits and performance traces
+- Records heap snapshots for memory debugging
 
 ### Pre-Push Secret Scanning
 
@@ -94,7 +118,7 @@ The prefix patterns live in `secrets/secret-patterns.txt` (44 patterns covering 
 
 - DRY-first approach (reuse > libraries > conventions > new code)
 - Security protocol: run semgrep on `node_modules` when first working with a project
-- Mode-specific guidelines (analyse, build, plan, brainstorm, creative, wild)
+- Mode-specific guidelines (analyze, build, plan, brainstorm)
 
 ## Setup
 
@@ -110,7 +134,7 @@ git clone https://github.com/<you>/opencode-config.git ~/.config/opencode-config
 cd ~/.config/opencode-config
 
 # Check out the latest release
-git checkout v1.2.0
+git checkout v1.3.1
 
 # Install dependencies
 npm install
@@ -135,7 +159,7 @@ Pull new releases from upstream and check out the tag:
 ```bash
 cd ~/.config/opencode-config
 git fetch --tags
-git checkout v1.2.0
+git checkout v1.3.1
 npm install
 ```
 
