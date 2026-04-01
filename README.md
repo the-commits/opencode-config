@@ -118,7 +118,7 @@ Requires Semgrep to be installed and authenticated (`semgrep login`).
 1. **Keyword-context scan** -- catches `api_key = "..."`, `password: "..."`, and similar assignment patterns
 2. **Prefix-based scan** -- catches secrets by their distinctive format (AWS `AKIA*`, GitHub `ghp_*`, Stripe `sk_live_*`, private key headers, JWTs, and 40+ other provider prefixes)
 
-The prefix patterns live in `secrets/secret-patterns.txt` (44 patterns covering AWS, GCP, OpenAI, Anthropic, Stripe, GitHub, GitLab, Slack, SendGrid, npm, PyPI, Hugging Face, Fly.io, Vault, and more). See [Third-party attribution](#third-party-attribution) for sources.
+The prefix patterns live in `secrets/secret-patterns.txt` (60 patterns covering AWS, GCP, OpenAI, Anthropic, Stripe, GitHub, GitLab, Slack, SendGrid, npm, PyPI, Hugging Face, Fly.io, Vault, and more). See [Third-party attribution](#third-party-attribution) for sources.
 
 - Only scans git-tracked files (what actually gets pushed)
 - Reports `file:line:column` for each match
