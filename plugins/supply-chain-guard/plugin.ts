@@ -19,9 +19,11 @@ interface PendingCall {
   lockfileHashesBefore: Map<string, string | null>
 }
 
-export const SupplyChainGuard: Plugin & {
-  (ctx: Parameters<Plugin>[0], recipesDir: string, cacheFilePath: string): ReturnType<Plugin>
-} = async (ctx, recipesDir?: string, cacheFilePath?: string) => {
+export const SupplyChainGuard = async (
+  ctx: Parameters<Plugin>[0],
+  recipesDir?: string,
+  cacheFilePath?: string,
+): ReturnType<Plugin> => {
   const configDir = resolveConfigDir()
   const recipes = recipesDir ?? path.join(configDir, "semgrep", "recipes")
   const cacheFile = cacheFilePath ?? path.join(configDir, ".supply-chain-guard-cache.json")
