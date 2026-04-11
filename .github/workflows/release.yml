@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  changelog:
+    name: Generate Changelog & Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find previous tag
+        id: prev_tag
+        run: |
+          CURRENT_TAG="${GITHUB_REF#refs/tags/}"
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${CURRENT_TAG}$" | head -1)
+          if [ -z "$PREV_TAG" ]; then
+            echo "range=" >> "$GITHUB_OUTPUT"
+          else
+            echo "range=${PREV_TAG}..${CURRENT_TAG}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "current=${CURRENT_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          TAG="${{ steps.prev_tag.outputs.current }}"
+          RANGE="${{ steps.prev_tag.outputs.range }}"
+
+          if [ -z "$RANGE" ]; then
+            COMMITS=$(git log --pretty=format:"%s" --no-merges)
+          else
+            COMMITS=$(git log --pretty=format:"%s" --no-merges "$RANGE")
+          fi
+
+          FEATURES=""
+          FIXES=""
+          DOCS=""
+          CHORES=""
+          OTHER=""
+
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            case "$line" in
+              feat:*|feat\(*)                     FEATURES="${FEATURES}\n- ${line}" ;;
+              fix:*|fix\(*)                       FIXES="${FIXES}\n- ${line}" ;;
+              docs:*|docs\(*)                     DOCS="${DOCS}\n- ${line}" ;;
+              chore:*|chore\(*|build:*|build\(*)  CHORES="${CHORES}\n- ${line}" ;;
+              *)                                  OTHER="${OTHER}\n- ${line}" ;;
+            esac
+          done <<< "$COMMITS"
+
+          {
+            echo 'body<<CHANGELOG_EOF'
+            [ -n "$FEATURES" ] && printf "## Features\n%b\n\n" "$FEATURES"
+            [ -n "$FIXES" ] && printf "## Fixes\n%b\n\n" "$FIXES"
+            [ -n "$DOCS" ] && printf "## Documentation\n%b\n\n" "$DOCS"
+            [ -n "$CHORES" ] && printf "## Maintenance\n%b\n\n" "$CHORES"
+            [ -n "$OTHER" ] && printf "## Other\n%b\n\n" "$OTHER"
+            echo 'CHANGELOG_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.prev_tag.outputs.current }}
+          name: ${{ steps.prev_tag.outputs.current }}
+          body: ${{ steps.changelog.outputs.body }}
+          draft: false
+          prerelease: ${{ contains(steps.prev_tag.outputs.current, '-') }}
