@@ -2,7 +2,7 @@
 
 This guide is for humans working on the opencode-config repository itself. If you're just using the config, see [README.md](README.md).
 
-> AI agents: see `PROJECT.md` instead (loaded automatically via `.opencode.jsonc`).
+> AI agents: see `PROJECT.md` instead (loaded automatically via `opencode.jsonc`).
 
 ---
 
@@ -79,4 +79,4 @@ SKIP_E2E=1 git push
 
 ## Project-specific dev rules
 
-`PROJECT.md` and `.opencode.jsonc` contain rules that only apply when developing this repo (not when using it as a config). These are loaded automatically by OpenCode agents working in this directory. See `PROJECT.md` for details.
+`PROJECT.md` and `opencode.jsonc` contain rules that only apply when developing this repo (not when using it as a config). These are loaded automatically by OpenCode agents working in this directory. See `PROJECT.md` for details.

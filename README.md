@@ -11,7 +11,7 @@ An opinionated [OpenCode](https://opencode.ai) configuration with security baked
 | [README.md](README.md) | End users | This file -- what's included and how to set up |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Contributors | Development setup, testing, and commit conventions |
 | [AGENTS.md](AGENTS.md) | AI agents | System-wide agent guidelines (applied globally) |
-| [PROJECT.md](PROJECT.md) | AI agents | Dev rules for this repo only (loaded via `.opencode.jsonc`) |
+| [PROJECT.md](PROJECT.md) | AI agents | Dev rules for this repo only (loaded via `opencode.jsonc`) |
 | [secrets/ATTRIBUTION.md](secrets/ATTRIBUTION.md) | Everyone | Third-party sources for secret scanning patterns |
 | [LICENSE](LICENSE) | Everyone | MIT licence |
 
