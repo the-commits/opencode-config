@@ -4,6 +4,17 @@ An opinionated [OpenCode](https://opencode.ai) configuration with security baked
 
 > **Quick start** -- see [Setup](#setup) to get going in two minutes.
 
+### Documentation
+
+| Document | Audience | Description |
+|---|---|---|
+| [README.md](README.md) | End users | This file -- what's included and how to set up |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contributors | Development setup, testing, and commit conventions |
+| [AGENTS.md](AGENTS.md) | AI agents | System-wide agent guidelines (applied globally) |
+| [PROJECT.md](PROJECT.md) | AI agents | Dev rules for this repo only (loaded via `.opencode.jsonc`) |
+| [secrets/ATTRIBUTION.md](secrets/ATTRIBUTION.md) | Everyone | Third-party sources for secret scanning patterns |
+| [LICENSE](LICENSE) | Everyone | MIT licence |
+
 ---
 
 ## What's in the box
@@ -193,15 +204,7 @@ Project-specific configuration goes in the project's own `opencode.jsonc` (or `o
 
 ## Setup
 
-You'll be needing [OpenCode](https://opencode.ai), [Semgrep](https://semgrep.dev), [ripgrep](https://github.com/BurntSushi/ripgrep), and [Bun](https://bun.sh) (for running tests).
-
-### Install Bun
-
-Bun is required for the test runner (`bun test`). Install it with:
-
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
+You'll be needing [OpenCode](https://opencode.ai), [Semgrep](https://semgrep.dev), and [ripgrep](https://github.com/BurntSushi/ripgrep).
 
 ### Fork or clone (recommended)
 
@@ -218,7 +221,7 @@ git clone https://github.com/<you>/opencode-config.git ~/.config/opencode
 cd ~/.config/opencode
 
 # Check out the latest release
-git checkout v2.0.1
+git checkout v2.0.2
 
 # Install dependencies
 npm install
@@ -231,7 +234,7 @@ Pull new releases from upstream and check out the tag:
 ```bash
 cd ~/.config/opencode
 git fetch --tags
-git checkout v2.0.1
+git checkout v2.0.2
 npm install
 ```
 
@@ -288,57 +291,9 @@ Key flags:
 
 ---
 
-## Developing opencode-config
+## Contributing
 
-This section is for contributors working on the opencode-config repository itself.
-
-### Testing
-
-Tests use [Bun's built-in test runner](https://bun.sh/docs/cli/test) (`bun:test`). Two tiers:
-
-#### Unit tests (~100ms)
-
-158 tests across 10 modules covering the supply chain guard, PHP tooling, and the shared `resolveConfigDir` utility. Pure, fast, no external dependencies.
-
-```bash
-SKIP_E2E=1 bun test
-```
-
-#### E2E integration tests (~50s)
-
-7 tests that exercise the full plugin pipeline with real npm/pip/go installs and real Semgrep scans. Requires: `npm`, `semgrep`, `python3` (for venv), `go`.
-
-```bash
-bun test tests/supply-chain-guard/e2e.test.ts
-```
-
-| Test | What it verifies |
-|---|---|
-| Findings detection | Semgrep catches backdoor patterns in installed packages |
-| Cache hit | Second identical install returns cached result |
-| Cache bust | Changing a dependency invalidates cache and triggers rescan |
-| pip ecosystem | Plugin detects and scans pip installs |
-| go ecosystem | Plugin detects and scans go mod downloads |
-| Multi-ecosystem | Single command with both npm and pip triggers both scans |
-| No-lockfile edge | Plugin scans successfully without a lockfile (no caching) |
-
-#### Running everything
-
-```bash
-bun test
-```
-
-#### Pre-push hook
-
-Both tiers run automatically on `git push` via the Husky pre-push hook. Unit tests run first (fast fail), then E2E. Skip E2E for faster pushes:
-
-```bash
-SKIP_E2E=1 git push
-```
-
-### Project-specific dev rules
-
-`PROJECT.md` and `.opencode.jsonc` contain rules that only apply when developing this repo (not when using it as a config). See `PROJECT.md` for details.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, testing, and commit conventions.
 
 ---
 
