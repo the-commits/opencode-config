@@ -127,10 +127,13 @@ All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cit
 `skills/` & `tools/feature-planning.ts` -- Domain-specific workflows that the agent can load on demand.
 
 - **Feature Planning**: A dedicated skill for agile planning. When you ask to plan a feature, write user stories, or break down an epic, the agent loads `skills/feature-planning/SKILL.md` to guide the session, define acceptance criteria, and establish a definition of done.
+- **SBOM Scan**: Sets up SBOM vulnerability scanning with Trivy in GitHub Actions CI. Detects if the project is a GitHub repo, generates the workflow file, and automates commit/push/trigger via `gh` CLI when available. Falls back to clear manual instructions if `gh` is not installed. Results appear under **Security > Code scanning** via SARIF upload.
 
 ### Custom Tools
 
 `tools/math.ts` -- Arithmetic tools (`math_add`, `math_subtract`, `math_multiply`, `math_divide`) that force the agent to use proper calculation instead of guessing in its head. Supports text-to-number parsing in English, Swedish, Spanish, German, and French, with contextual US short-scale vs UK/EU long-scale handling for "billion".
+
+`tools/sbom-scan.ts` -- Sets up SBOM vulnerability scanning in a GitHub Actions CI pipeline. Detects GitHub repos, generates a Trivy workflow with SPDX SBOM generation and SARIF reporting, and optionally automates the full setup via `gh` CLI. MEDIUM+ severities block the build; LOW findings are reported to the GitHub Security tab as informational.
 
 ### MCP Servers (Global)
 
