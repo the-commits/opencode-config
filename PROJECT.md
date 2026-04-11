@@ -10,7 +10,7 @@ This document contains specific instructions for AI agents and developers workin
 - `AGENTS.md` - The global agent guidelines template.
 
 ## Development Rules
-- **Code Quality**: No empty statements (like empty `catch` blocks) or dead code. Always handle errors appropriately and log them if necessary.
+- **Code Quality**: No empty statements (like empty `catch` blocks). **Absolutely no dead code** -- no unused functions, no unused variables, no unreachable branches, no type-only overloads that serve no runtime purpose. If code is not called, delete it. Always handle errors appropriately and log them if necessary.
 - **Commits**: You must use GRANULAR, focused commits (one logical change per commit).
 - **SemVer**: We strictly follow [Semantic Versioning](https://semver.org/). On every release/push that warrants a new tag, you MUST ensure that `package.json`, `README.md` (e.g. checkout instructions), and any other files referencing the git tag version are updated accordingly.
 - **Testing**: Use `bun test` for unit tests. Run E2E tests with `bun test tests/supply-chain-guard/e2e.test.ts`. Tests must pass before committing.
