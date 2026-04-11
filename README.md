@@ -155,6 +155,12 @@ The prefix patterns live in `secrets/secret-patterns.txt` (72 patterns covering 
 - All output to stderr so it doesn't interfere with the OpenCode TUI
 - Bypass with `git push --no-verify` if you're sure of yourself
 
+### Skills
+
+`skills/` & `tools/feature-planning.ts` -- Domain-specific workflows that the agent can load on demand.
+
+- **Feature Planning**: A dedicated skill for agile planning. When you ask to plan a feature, write user stories, or break down an epic, the agent loads `skills/feature-planning/SKILL.md` to guide the session, define acceptance criteria, and establish a definition of done.
+
 ### Agent Guidelines
 
 `AGENTS.md` -- System-wide instructions for coding agents, so they don't go off making a bags of things:
