@@ -120,9 +120,11 @@ Requires Semgrep to be installed and authenticated (`semgrep login`).
 - Runs Lighthouse audits and performance traces
 - Records heap snapshots for memory debugging
 
-### Xdebug MCP (Project-specific)
+### Xdebug MCP (Auto-detected)
 
-[Xdebug MCP Server](https://github.com/kpanuragh/xdebug-mcp) via `npx`. Gives the agent a full set of PHP debugging tools. Since you only want this running in PHP projects, add it to your local project's `.opencode.jsonc` instead of the global config:
+`plugins/php-tooling.ts` -- Auto-detects PHP projects at startup by looking for `composer.json`, `composer.lock`, `artisan`, or `*.php` files. When a PHP project is detected, the plugin injects Xdebug MCP guidance into the agent's context at the start of each session.
+
+To enable the actual Xdebug MCP server, add it to your PHP project's `.opencode.jsonc`:
 
 ```jsonc
 {
