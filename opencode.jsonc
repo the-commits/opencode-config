@@ -71,7 +71,27 @@
 		}
 	},
 	"mode": {
+		"brainstorm": {
+			"model": "github-copilot/claude-3.5-sonnet",
+			"temperature": 0.7,
+			"prompt": "{file:./prompts/brainstorm.txt}",
+			"permission": {
+				"bash": "deny",
+				"edit": "deny",
+				"write": "deny"
+			}
+		},
+		"plan": {
+			"model": "github-copilot/gemini-3.1-pro-preview",
+			"temperature": 0.1,
+			"permission": {
+				"bash": "deny",
+				"edit": "deny",
+				"write": "deny"
+			}
+		},
 		"analyze": {
+			"model": "github-copilot/gemini-3.1-pro-preview",
 			"temperature": 0.1,
 			"prompt": "{file:./prompts/analysis.txt}",
 			"permission": {
@@ -83,23 +103,6 @@
 		"build": {
 			"temperature": 0.0,
 			"permission": "allow"
-		},
-		"plan": {
-			"temperature": 0.1,
-			"permission": {
-				"bash": "deny",
-				"edit": "deny",
-				"write": "deny"
-			}
-		},
-		"brainstorm": {
-			"temperature": 0.7,
-			"prompt": "{file:./prompts/brainstorm.txt}",
-			"permission": {
-				"bash": "deny",
-				"edit": "deny",
-				"write": "deny"
-			}
 		}
 	}
 }
