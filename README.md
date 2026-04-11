@@ -111,6 +111,27 @@ Requires Semgrep to be installed and authenticated (`semgrep login`).
 - Runs Lighthouse audits and performance traces
 - Records heap snapshots for memory debugging
 
+### Xdebug MCP (Project-specific)
+
+[Xdebug MCP Server](https://github.com/kpanuragh/xdebug-mcp) via `npx`. Gives the agent a full set of PHP debugging tools. Since you only want this running in PHP projects, add it to your local project's `.opencode.jsonc` instead of the global config:
+
+```jsonc
+{
+  "mcp": {
+    "xdebug": {
+      "type": "local",
+      "command": ["npx", "-y", "xdebug-mcp@latest"]
+    }
+  }
+}
+```
+
+- Sets breakpoints automatically based on the codebase
+- Steps through PHP execution to trace issues
+- Inspects variables, arrays, objects, and stack traces
+- Analyzes logic errors and suggests targeted fixes
+- Works natively with Docker-based PHP setups
+
 ### Pre-Push Secret Scanning
 
 `.husky/pre-push` -- A git hook that scans your tracked files for leaked secrets before you push. Two-pass approach using ripgrep:
@@ -118,7 +139,7 @@ Requires Semgrep to be installed and authenticated (`semgrep login`).
 1. **Keyword-context scan** -- catches `api_key = "..."`, `password: "..."`, and similar assignment patterns
 2. **Prefix-based scan** -- catches secrets by their distinctive format (AWS `AKIA*`, GitHub `ghp_*`, Stripe `sk_live_*`, private key headers, JWTs, and 40+ other provider prefixes)
 
-The prefix patterns live in `secrets/secret-patterns.txt` (60 patterns covering AWS, GCP, OpenAI, Anthropic, Stripe, GitHub, GitLab, Slack, SendGrid, npm, PyPI, Hugging Face, Fly.io, Vault, and more). See [Third-party attribution](#third-party-attribution) for sources.
+The prefix patterns live in `secrets/secret-patterns.txt` (72 patterns covering AWS, GCP, OpenAI, Anthropic, Stripe, GitHub, GitLab, Slack, SendGrid, npm, PyPI, Hugging Face, Fly.io, Vault, 1Password, and more). See [Third-party attribution](#third-party-attribution) for sources.
 
 - Only scans git-tracked files (what actually gets pushed)
 - Reports `file:line:column` for each match
