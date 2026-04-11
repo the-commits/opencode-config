@@ -1,0 +1,51 @@
+name: SBOM Vulnerability Scan
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch: {}
+  schedule:
+    - cron: '30 09 * * *'
+
+jobs:
+  sbom-scan:
+    name: Trivy SBOM Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    if: (github.actor != 'dependabot[bot]')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Scan SBOM for vulnerabilities (blocking)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: sbom
+          scan-ref: sbom.spdx.json
+          severity: CRITICAL,HIGH,MEDIUM
+          exit-code: '1'
+          format: table
+
+      - name: Scan SBOM for low-severity issues (informational)
+        if: always()
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: sbom
+          scan-ref: sbom.spdx.json
+          severity: LOW
+          exit-code: '0'
+          format: table
