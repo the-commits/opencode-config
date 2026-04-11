@@ -1,11 +1,21 @@
 import { tool } from "@opencode-ai/plugin";
 
 function textToNumber(text: string): number {
-	const input = text.toLowerCase().trim();
+	let input = text.toLowerCase().trim();
 
 	if (!isNaN(parseFloat(input)) && isFinite(parseFloat(input))) {
 		return parseFloat(input);
 	}
+
+	// Detect if context indicates US (short scale) or UK/European (long scale)
+	const isUS = /(dollar|\$|usd|us|american)/i.test(input);
+	const isUK = /(pound|£|gbp|uk|british|sterling)/i.test(input);
+	const useShortScale = isUS && !isUK; // Default to long scale (Swedish/European standard)
+
+	// Pre-process specific language quirks before splitting (like French quatre-vingt)
+	input = input.replace(/quatre-vingts?/g, "quatrevingt");
+	input = input.replace(/soixante-dix/g, "seventy"); // Simple fallback mapping for 70
+	input = input.replace(/quatrevingt-dix/g, "ninety"); // Fallback for 90
 
 	const ones: { [key: string]: number } = {
 		// English
@@ -20,6 +30,9 @@ function textToNumber(text: string): number {
 		// German
 		"null": 0, eins: 1, ein: 1, zwei: 2, zwo: 2, drei: 3, vier: 4, fünf: 5, fuenf: 5, funf: 5, sechs: 6, sieben: 7, acht: 8, neun: 9,
 		zehn: 10, elf: 11, zwölf: 12, zwoelf: 12, dreizehn: 13, vierzehn: 14, fünfzehn: 15, sechzehn: 16, siebzehn: 17, achtzehn: 18, neunzehn: 19,
+		// French (missing from above)
+		zéro: 0, deux: 2, trois: 3, quatre: 4, cinq: 5, sept: 7, huit: 8, neuf: 9,
+		douze: 12, treize: 13, quatorze: 14, quinze: 15, seize: 16,
 	};
 
 	const tens: { [key: string]: number } = {
@@ -31,18 +44,30 @@ function textToNumber(text: string): number {
 		veinte: 20, treinta: 30, cuarenta: 40, cincuenta: 50, sesenta: 60, setenta: 70, ochenta: 80, noventa: 90,
 		// German
 		zwanzig: 20, dreißig: 30, dreissig: 30, vierzig: 40, fünfzig: 50, sechzig: 60, siebzig: 70, achtzig: 80, neunzig: 90,
+		// French
+		vingt: 20, trente: 30, quarante: 40, cinquante: 50, soixante: 60, quatrevingt: 80,
 	};
 
 	const scales: { [key: string]: number } = {
-		// English
-		hundred: 100, thousand: 1000, million: 1000000, billion: 1000000000, trillion: 1000000000000,
-		// Swedish
-		hundra: 100, tusen: 1000, miljon: 1000000, miljard: 1000000000, biljon: 1000000000000,
-		// Spanish
-		cien: 100, ciento: 100, mil: 1000, millon: 1000000, millón: 1000000,
-		// German
-		hundert: 100, tausend: 1000, millionen: 1000000, milliarde: 1000000000,
+		// Unambiguous translations
+		hundred: 100, hundra: 100, cien: 100, ciento: 100, hundert: 100, cent: 100,
+		thousand: 1000, tusen: 1000, mil: 1000, tausend: 1000, mille: 1000,
+		million: 1e6, miljon: 1e6, millon: 1e6, millón: 1e6, millionen: 1e6,
+		miljard: 1e9, milliarde: 1e9, milliard: 1e9, // These ALWAYS mean 10^9
+		biljon: 1e12, billon: 1e12, billonen: 1e12, // These ALWAYS mean 10^12
+		biljard: 1e15,
+		triljon: 1e18,
 	};
+
+	// Contextual scales based on US vs UK/Europe "Billion" definitions
+	if (useShortScale) {
+		scales["billion"] = 1e9;
+		scales["trillion"] = 1e12;
+	} else {
+		// Default to long scale for UK English and European standards
+		scales["billion"] = 1e12;
+		scales["trillion"] = 1e18;
+	}
 
 	if (ones[input] !== undefined) return ones[input];
 	if (tens[input] !== undefined) return tens[input];
@@ -52,12 +77,15 @@ function textToNumber(text: string): number {
 	let current = 0;
 	let parsedSomething = false;
 
-	// Split by space, dash, or generic logical connectors like "und", "y", "and", "och"
-	const words = input.split(/[\s-]+|(?:^|\s)(?:and|y|und|och)(?:\s|$)/).filter(Boolean);
+	// Split by space, dash, or generic logical connectors like "und", "y", "and", "och", "et"
+	const words = input.split(/[\s-]+|(?:^|\s)(?:and|y|und|och|et)(?:\s|$)/).filter(Boolean);
 
 	for (const w of words) {
 		const word = w.trim();
 		if (!word) continue;
+
+		// Skip currency keywords as they are used for scale detection but shouldn't break the parser
+		if (word.match(/^(dollars?|\$|usd|pounds?|£|gbp|euros?|€)$/i)) continue;
 
 		if (ones[word] !== undefined) {
 			current += ones[word];
@@ -66,11 +94,9 @@ function textToNumber(text: string): number {
 			current += tens[word];
 			parsedSomething = true;
 		} else if (scales[word] === 100) {
-			// e.g. "three hundred" => 3 * 100. Or just "hundred" => 100.
 			current = current === 0 ? 100 : current * 100;
 			parsedSomething = true;
 		} else if (scales[word] !== undefined) {
-			// e.g. "two thousand" => 2 * 1000. Or just "thousand" => 1000.
 			current = current === 0 ? 1 : current;
 			result += current * scales[word];
 			current = 0;
@@ -80,8 +106,6 @@ function textToNumber(text: string): number {
 
 	result += current;
 
-	// If we got exactly 0 and it wasn't a "zero" equivalent (which we handled with early returns)
-	// and we didn't parse anything valid, then throw.
 	if (!parsedSomething) {
 		throw new Error(`Unable to parse number: "${text}"`);
 	}
