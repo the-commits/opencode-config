@@ -289,6 +289,10 @@ Key flags:
 - `--no-git-ignore` -- otherwise `.gitignore` excludes vendor dirs
 - `--exclude='!node_modules'` / `--exclude='!vendor'` -- overrides Semgrep's built-in `.semgrepignore` which skips these
 
+### Recipe maturity
+
+The **JS/TS** and **PHP** recipes have been tested against real-world projects and tuned to keep the noise down. Rules for the other ecosystems (C#, Ruby, Java, Python, Rust, Go, C/C++) are in **beta** -- they'll do the job but expect a fair whack of false positives.
+
 ---
 
 ## Contributing
