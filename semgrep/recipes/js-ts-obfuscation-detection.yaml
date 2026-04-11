@@ -49,9 +49,11 @@ rules:
 
   # --- Dynamic import from variable (user-controlled path) ---
   - id: js-ts-dynamic-import-variable
-    pattern: import($VAR)
+    patterns:
+      - pattern: import($VAR)
+      - pattern-not: import("...")
     message: >
-      Dynamic import() with variable argument — possible arbitrary code loading.
+      Dynamic import() with non-literal argument — possible arbitrary code loading.
     severity: WARNING
     languages: [javascript, typescript]
     metadata:
