@@ -16,6 +16,8 @@ export default tool({
 			.describe("Brief description of the feature to plan"),
 	},
 	async execute(args, context) {
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		// nosemgrep: semgrep.recipes.js-ts-dynamic-import-variable
 		const fs = await import("fs/promises");
 		const configDir = resolveConfigDir();
 		const skillPath = path.join(
