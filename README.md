@@ -255,6 +255,15 @@ git checkout v2.0.2
 npm install
 ```
 
+> **Note for forks:** GitHub's "Sync fork" button only syncs branches, not tags. You need to fetch tags from upstream manually:
+>
+> ```bash
+> cd ~/.config/opencode
+> git remote add upstream https://github.com/the-commits/opencode-config.git  # once
+> git fetch --tags upstream
+> git push origin --tags
+> ```
+
 ### Cherry-pick what you want
 
 You can also just grab the bits you fancy:
