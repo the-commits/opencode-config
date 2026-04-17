@@ -120,5 +120,10 @@ Suspend judgment, challenge assumptions, cross-pollinate from unrelated fields, 
 
 Be proactive when asked to solve problems, but avoid taking unsolicited actions. Wait for explicit requests before making changes beyond the scope of the current task.
 
+## Git Remotes
+
+- **NEVER push without asking.** Always get explicit confirmation from the user before pushing to any remote, even when commits are made and tests pass.
+- **Never push to forks directly.** Forks should only receive changes by syncing from upstream.
+
 ## Security
 When first working with a project that has node_modules (or equivalent dependency directory), run `semgrep --config ~/.config/opencode/semgrep/recipes/ --no-git-ignore --exclude='!node_modules' node_modules/` to audit dependencies for supply chain backdoors and inventory outbound network calls.
