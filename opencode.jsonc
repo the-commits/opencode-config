@@ -4,7 +4,7 @@
 		"PROJECT.md"
 	],
 	"plugin": ["opencode-gemini-auth@latest", "opencode-websearch-cited@latest"],
-	"model": "github-copilot/claude-opus-4.6",
+			"model": "github-copilot/claude-opus-4.7",
 	"mcp": {
 		"semgrep": {
 			"type": "local",
@@ -75,8 +75,8 @@
 	},
 	"mode": {
 		"brainstorm": {
-			"model": "github-copilot/claude-4.6-sonnet",
-			"temperature": 0.7,
+			"model": "github-copilot/claude-opus-4.7",
+			"temperature": 0.5,
 			"prompt": "{file:./prompts/brainstorm.txt}",
 			"permission": {
 				"bash": "deny",
@@ -97,6 +97,12 @@
 			"model": "github-copilot/gemini-3.1-pro-preview",
 			"temperature": 0.1,
 			"prompt": "{file:./prompts/analysis.txt}",
+			"options": {
+				"thinkingConfig": {
+					"thinkingLevel": "high",
+					"includeThoughts": true
+				}
+			},
 			"permission": {
 				"bash": "deny",
 				"edit": "deny",
@@ -104,6 +110,7 @@
 			}
 		},
 		"build": {
+	"model": "github-copilot/claude-opus-4.7",
 			"temperature": 0.0,
 			"permission": "allow"
 		}
