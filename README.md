@@ -115,10 +115,10 @@ Four modes configured in `opencode.jsonc`, each with temperature tuning and perm
 
 | Mode | Model | Temperature | Write access | Prompt |
 |---|---|---|---|---|
-| `brainstorm` | `claude-4.6-sonnet` | 0.7 | Read-only | `prompts/brainstorm.txt` |
+| `brainstorm` | `claude-opus-4.7` | 0.5 | Read-only | `prompts/brainstorm.txt` |
 | `plan` | `gemini-3.1-pro-preview` | 0.1 | Read-only | Default |
 | `analyze` | `gemini-3.1-pro-preview` | 0.1 | Read-only | `prompts/analysis.txt` |
-| `build` | Default | 0.0 | Full | Default |
+| `build` | `claude-opus-4.7` | 0.0 | Full | Default |
 
 All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field -- read-only modes deny `bash`, `edit`, and `write`.
 
