@@ -32,8 +32,10 @@ export const EnvProtection: Plugin = async (ctx) => {
       await ctx.client.app.log({
         body: { service: "env-protection", level: "warn", message },
       })
-    } catch {
-      // best-effort
+    } catch (err) {
+      console.debug(
+        `env-protection: log call failed (${err instanceof Error ? err.message : String(err)})`,
+      )
     }
   }
 
