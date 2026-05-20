@@ -24,8 +24,12 @@ export const SuccessfulEditingPlugin: Plugin = async ({ client, $, directory, wo
 				if (content.includes('"granular_commits": true')) {
 					return true;
 				}
-			} catch {
-				// File doesn't exist
+			} catch (err) {
+				if ((err as NodeJS.ErrnoException)?.code !== "ENOENT") {
+					console.debug(
+						`successful-editing: failed to read ${filename} (${err instanceof Error ? err.message : String(err)})`,
+					);
+				}
 			}
 		}
 		return false;
