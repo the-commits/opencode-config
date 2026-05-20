@@ -20,7 +20,7 @@ export default tool({
 			.optional()
 			.describe("Project directory to set up. Defaults to current working directory."),
 	},
-	async execute(args, context) {
+	async execute(args) {
 		const directory = args.directory || process.cwd();
 		const lines: string[] = [];
 
@@ -89,9 +89,10 @@ export default tool({
 				lines.push("Setup complete. Results will appear under **Security > Code scanning**.");
 			} catch (err) {
 				lines.push(
-					"Automated commit/push failed. " +
-					"You may need to commit and push manually:",
+					"Automated commit/push failed: " +
+					(err instanceof Error ? err.message : String(err)),
 				);
+				lines.push("You may need to commit and push manually:");
 				lines.push("");
 				lines.push(buildManualInstructions());
 			}
