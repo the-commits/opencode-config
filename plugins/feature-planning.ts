@@ -18,8 +18,14 @@ export const FeaturePlanningAssistant: Plugin = async ({ client }) => {
       await client.tui.showToast({
         body: { message, variant: "info" },
       })
-    } catch {
-      // Toast not available (e.g., running in CLI mode)
+    } catch (error) {
+      await client.app.log({
+        body: {
+          service: "feature-planning",
+          level: "debug",
+          message: `Toast unavailable: ${error instanceof Error ? error.message : String(error)}`,
+        },
+      })
     }
   }
 
