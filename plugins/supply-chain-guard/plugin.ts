@@ -34,8 +34,10 @@ export const SupplyChainGuard = async (
       await ctx.client.app.log({
         body: { service: "supply-chain-guard", level, message },
       })
-    } catch {
-      // best-effort
+    } catch (err) {
+      console.debug(
+        `supply-chain-guard: log call failed (${err instanceof Error ? err.message : String(err)})`,
+      )
     }
   }
 
