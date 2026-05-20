@@ -1,0 +1,27 @@
+# Accepted vulnerabilities for Trivy SBOM scan.
+#
+# Format: one CVE per line. Optional inline comment after the id.
+# Each entry MUST include a justification block above it and a
+# re-evaluation date so we do not silently carry stale exceptions.
+
+# ---------------------------------------------------------------------------
+# CVE-2026-41907 / GHSA-w5hq-g745-h8pq -- uuid (npm), severity MEDIUM
+#
+# CWE-787 (Out-of-bounds Write) + CWE-1285 (Improper Index/Offset Validation)
+# in uuid v3/v5/v6 when caller passes an external `buf` argument with an
+# out-of-range offset. v4/v1/v7 throw RangeError; v3/v5/v6 silently partial-write.
+#
+# Why accepted in this repo:
+#   - Transitive dependency: @opencode-ai/plugin -> effect@4.0.0-beta.48 -> uuid@13.0.0
+#   - This project's source code does not import `uuid` at all
+#     (verified with `grep -rn "from 'uuid'\|require.*uuid"` -- zero hits in
+#     plugins/, tools/, skills/, prompts/)
+#   - No code path passes an external `buf` to v3/v5/v6, so the silent
+#     partial-write behaviour cannot be triggered from our code
+#   - This repository is a developer configuration bundle, not a runtime
+#     service exposed to untrusted input
+#
+# Re-evaluate by: 2026-08-20 (3 months)
+# Remove when: @opencode-ai/plugin upgrades effect past the vulnerable uuid range,
+#              or when we can add an npm `overrides` entry without breaking lockfile resolution.
+CVE-2026-41907
