@@ -15,8 +15,7 @@ export default tool({
 			.optional()
 			.describe("Brief description of the feature to plan"),
 	},
-	async execute(args, context) {
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
+	async execute(args) {
 		// nosemgrep: semgrep.recipes.js-ts-dynamic-import-variable
 		const fs = await import("fs/promises");
 		const configDir = resolveConfigDir();
@@ -34,6 +33,7 @@ export default tool({
 			throw new Error(
 				`Could not find feature-planning skill at ${skillPath}. ` +
 				`Ensure the skill file is installed in your OpenCode config directory.`,
+				{ cause: err },
 			);
 		}
 

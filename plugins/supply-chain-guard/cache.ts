@@ -33,8 +33,10 @@ export async function saveCache(
 ): Promise<void> {
   try {
     await fs.writeFile(cacheFilePath, JSON.stringify(cache, null, 2), "utf8")
-  } catch {
-    // best-effort — caller should not break on write failure
+  } catch (err) {
+    console.debug(
+      `supply-chain-guard: failed to persist cache to ${cacheFilePath} (${err instanceof Error ? err.message : String(err)})`,
+    )
   }
 }
 
