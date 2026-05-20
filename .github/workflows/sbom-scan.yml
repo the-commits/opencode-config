@@ -39,6 +39,7 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM
           exit-code: '1'
           format: table
+          trivyignores: .trivyignore
 
       - name: Scan SBOM for low-severity issues (SARIF)
         if: always()
@@ -50,6 +51,7 @@ jobs:
           exit-code: '0'
           format: sarif
           output: trivy-low.sarif
+          trivyignores: .trivyignore
 
       - name: Upload low-severity results to GitHub Security
         if: always()
