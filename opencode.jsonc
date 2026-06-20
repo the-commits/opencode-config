@@ -157,10 +157,10 @@
       "model": "opencode/big-pickle",
       "temperature": 0.0,
     },
-    "build-advanced": {
+    "build-meticulous": {
       "model": "opencode-go/glm-5.2",
       "temperature": 0.0,
-      "prompt": "{file:./prompts/build-advanced.txt}",
+      "prompt": "{file:./prompts/build-meticulous.txt}",
     },
   },
 }

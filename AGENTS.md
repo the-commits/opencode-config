@@ -97,6 +97,10 @@ Follow analysis frameworks: dissect components, contextualize ecosystem, invert 
 
 Focus on correctness and efficiency. All tools are enabled for maximum productivity. This is the only mode with write and execution permissions.
 
+### Build-Meticulous Mode (full access, temperature: 0.0)
+
+A structured build mode with a five-phase workflow: understand, design, decompose, implement, verify. Enforces TDD (red-green-refactor), minimal changes, and ruthless self-review. All tools are enabled. Use for complex, multi-step tasks where thoroughness matters more than speed.
+
 ### Plan Mode (read-only, temperature: 0.1)
 
 Think through implementation before acting. Read files and understand codebase structure before proposing changes. No file modifications or command execution permitted.
