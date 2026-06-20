@@ -1,3 +1,8 @@
 node_modules
 bun.lock
 .supply-chain-guard-cache.json
+
+antigravity-accounts.json
+antigravity-accounts.json.*.tmp
+antigravity-signature-cache.json
+antigravity-logs/

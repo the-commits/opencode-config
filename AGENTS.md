@@ -32,20 +32,16 @@ Before writing new code, exhaust existing solutions in this order:
 
 Make focused, incremental changes. Avoid large refactors unless explicitly requested. One logical change per commit. Small changes are easier to review, test, and revert if needed.
 
-### Testing (TDD - Red/Green/Refactor)
+### Testing (TDD)
 
-**This is non-negotiable.** All projects must follow strict Test-Driven Development using the red-green-refactor cycle. No exceptions.
+Follow Test-Driven Development (red-green-refactor) when working with application code in languages and frameworks that have a standard test runner — JS/TS (Jest, Vitest, bun test), Python (pytest), Rust (cargo test), Go, Java (JUnit), C# (NUnit/xUnit), Ruby (RSpec), and similar.
 
-1. **Red** - Write a failing test first that defines the desired behavior or exposes the bug. Run the test and confirm it fails. Do not proceed until you have a red test.
-2. **Green** - Write the minimum code necessary to make the test pass. Nothing more. Run the test and confirm it passes.
-3. **Refactor** - Clean up the implementation while keeping all tests green. Run the tests again after any refactor.
+**Skip TDD** for infrastructure and operations work: Ansible playbooks, Terraform/HCL, Dockerfiles, CI/CD workflows, shell scripts, config files (JSON, YAML, TOML), and other declarative or glue-code artifacts.
 
-**Hard rules:**
-- Never write or modify production code without a corresponding failing test written first.
-- Never skip the red step. If you cannot articulate a failing test, you do not understand the requirement.
-- If fixing a bug, write a test that reproduces the bug before writing the fix.
-- Test edge cases, error conditions, and typical usage patterns.
-- Run the test suite after every change to confirm the cycle is intact.
+When TDD applies:
+1. **Red** — Write a failing test that defines the desired behavior or reproduces the bug. Confirm it fails.
+2. **Green** — Write the minimum code to make it pass.
+3. **Refactor** — Clean up while keeping tests green.
 
 ### Single Responsibility Principle (SRP)
 

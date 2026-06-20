@@ -3,12 +3,12 @@ import path from "node:path"
 import type { ScanPass } from "./ecosystems.ts"
 import { formatFindings } from "./formatting.ts"
 
-export interface ShellResult {
+interface ShellResult {
   stdout: string
   exitCode: number
 }
 
-export interface ShellArgs {
+interface ShellArgs {
   command: string[]
   workdir: string
 }
