@@ -115,7 +115,7 @@ Once active, the Xdebug MCP server provides:
 
 ### Agent Modes
 
-Five modes configured in `opencode.jsonc`, each with temperature tuning and permission constraints:
+Six modes configured in `opencode.jsonc`, each with temperature tuning and permission constraints:
 
 | Mode | Model | Temperature | Write access | Prompt |
 |---|---|---|---|---|
@@ -124,10 +124,13 @@ Five modes configured in `opencode.jsonc`, each with temperature tuning and perm
 | `plan` | `gemini-3.1-pro-preview` | 0.1 | Read-only | Default |
 | `analyze` | `gemini-3.1-pro-preview` | 0.1 | Read-only | `prompts/analysis.txt` |
 | `build` | `gemini-3.5-flash` | 0.0 | Full | Default |
+| `build-meticulous` | `glm-5.2` | 0.0 | Full | `prompts/build-meticulous.txt` |
 
 All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field -- read-only modes deny `bash`, `edit`, and `write`.
 
 `scout` is the default mode — a lightweight web search and research mode using `opencode/big-pickle` with `websearch_cited` and Chrome DevTools for fetching and browsing information.
+
+`build-meticulous` is a structured build mode with a five-phase workflow (understand, design, decompose, implement, verify) that enforces TDD and ruthless self-review.
 
 ### Skills
 
@@ -208,7 +211,7 @@ The prefix patterns live in `secrets/secret-patterns.txt` (72 patterns covering 
 
 - DRY-first approach (reuse > libraries > conventions > new code)
 - Security protocol: run semgrep on `node_modules` when first working with a project
-- Mode-specific guidelines (analyze, build, plan, brainstorm)
+- Mode-specific guidelines (analyze, build, build-meticulous, plan, brainstorm)
 
 ---
 
@@ -245,7 +248,7 @@ git clone https://github.com/<you>/opencode-config.git ~/.config/opencode
 cd ~/.config/opencode
 
 # Check out the latest release
-git checkout v2.0.5
+git checkout v3.0.0
 
 # Install dependencies
 npm install
@@ -258,7 +261,7 @@ Pull new releases from upstream and check out the tag:
 ```bash
 cd ~/.config/opencode
 git fetch --tags
-git checkout v2.0.5
+git checkout v3.0.0
 npm install
 ```
 
