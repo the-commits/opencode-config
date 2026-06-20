@@ -8,7 +8,6 @@ import {
 	generateWorkflowYaml,
 	writeWorkflowFile,
 	buildManualInstructions,
-	type GitHubRepoInfo,
 } from "../../lib/sbom-scan.ts"
 
 let tmpDir: string

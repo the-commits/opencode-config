@@ -14,17 +14,17 @@ import { execSync } from "node:child_process"
 // Types
 // ---------------------------------------------------------------------------
 
-export interface GitHubRepoInfo {
+interface GitHubRepoInfo {
 	owner: string
 	repo: string
 }
 
-export interface GhCliStatus {
+interface GhCliStatus {
 	available: boolean
 	authenticated: boolean
 }
 
-export interface WriteResult {
+interface WriteResult {
 	created: boolean
 	alreadyExists: boolean
 	filePath: string

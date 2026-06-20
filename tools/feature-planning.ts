@@ -16,7 +16,6 @@ export default tool({
 			.describe("Brief description of the feature to plan"),
 	},
 	async execute(args) {
-		// nosemgrep: semgrep.recipes.js-ts-dynamic-import-variable
 		const fs = await import("fs/promises");
 		const configDir = resolveConfigDir();
 		const skillPath = path.join(
@@ -29,11 +28,10 @@ export default tool({
 		let content: string;
 		try {
 			content = await fs.readFile(skillPath, "utf-8");
-		} catch (err) {
+		} catch {
 			throw new Error(
 				`Could not find feature-planning skill at ${skillPath}. ` +
 				`Ensure the skill file is installed in your OpenCode config directory.`,
-				{ cause: err },
 			);
 		}
 

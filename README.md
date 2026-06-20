@@ -93,7 +93,7 @@ Once active, the Xdebug MCP server provides:
 
 ### Semgrep Security Recipes
 
-`semgrep/recipes/` -- 255 custom rules across 11 recipe files covering JS/TS, PHP, C#, Ruby, Java, Python, Rust, Go, and C/C++:
+`semgrep/recipes/` -- 292 custom rules across 15 recipe files covering JS/TS, PHP, C#, Ruby, Java, Python, Rust, Go, and C/C++:
 
 | File | Rules | What it's after |
 |---|---|---|
@@ -104,6 +104,10 @@ Once active, the Xdebug MCP server provides:
 | `csharp-backdoor-detection.yaml` | 24 | C# outbound + backdoors (HttpClient, WebClient, TcpClient, Socket, Assembly.Load, BinaryFormatter, PowerShell launch, download+execute) |
 | `ruby-backdoor-detection.yaml` | 29 | Ruby outbound + backdoors (Net::HTTP, HTTParty, Faraday, RestClient, TCPSocket, Marshal.load, YAML.load, eval+base64) + Rails (constantize, render inline) |
 | `java-backdoor-detection.yaml` | 26 | Java outbound + backdoors (HttpClient, OkHttp, Socket, RestTemplate, WebClient, ObjectInputStream, JNDI lookup, ScriptEngine, URLClassLoader) |
+| `js-ts-exfiltration-detection.yaml` | 20 | JS/TS data exfiltration (response.write, process.stdout, fetch post to external hosts, WebSocket send, DNS exfil) |
+| `js-ts-obfuscation-detection.yaml` | 6 | JS/TS obfuscation patterns (heavy use of bitwise ops, string building, eval with string concat) |
+| `js-ts-persistence-detection.yaml` | 5 | JS/TS persistence mechanisms (cron job creation, startup script writing, service registration) |
+| `js-ts-rat-detection.yaml` | 6 | JS/TS RAT/backdoor indicators (keyloggers, reverse shell listeners, file upload callbacks) |
 | `python-backdoor-detection.yaml` | 32 | Python outbound + backdoors (requests, urllib, httpx, aiohttp, socket, pickle, eval+base64, exec+compile, env exfil, ctypes) |
 | `rust-backdoor-detection.yaml` | 16 | Rust outbound + suspicious (reqwest, hyper, TcpStream, Command, unsafe blocks, FFI, dynamic library loading) |
 | `go-backdoor-detection.yaml` | 24 | Go outbound + backdoors (net/http, net.Dial, gRPC, DNS, init() abuse, download+exec, env exfil, plugin.Open, CGo) |
@@ -111,16 +115,19 @@ Once active, the Xdebug MCP server provides:
 
 ### Agent Modes
 
-Four modes configured in `opencode.jsonc`, each with temperature tuning and permission constraints:
+Five modes configured in `opencode.jsonc`, each with temperature tuning and permission constraints:
 
 | Mode | Model | Temperature | Write access | Prompt |
 |---|---|---|---|---|
-| `brainstorm` | `claude-opus-4.7` | 0.5 | Read-only | `prompts/brainstorm.txt` |
+| `scout` | `big-pickle` | 0.0 | Full | Default |
+| `brainstorm` | `gemini-3.1-pro-preview` | 0.5 | Read-only | `prompts/brainstorm.txt` |
 | `plan` | `gemini-3.1-pro-preview` | 0.1 | Read-only | Default |
 | `analyze` | `gemini-3.1-pro-preview` | 0.1 | Read-only | `prompts/analysis.txt` |
-| `build` | `claude-opus-4.7` | 0.0 | Full | Default |
+| `build` | `gemini-3.5-flash` | 0.0 | Full | Default |
 
 All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field -- read-only modes deny `bash`, `edit`, and `write`.
+
+`scout` is the default mode — a lightweight web search and research mode using `opencode/big-pickle` with `websearch_cited` and Chrome DevTools for fetching and browsing information.
 
 ### Skills
 
