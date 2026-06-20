@@ -17,7 +17,7 @@ This document contains specific instructions for AI agents and developers workin
 - `AGENTS.md` - The global agent guidelines template (system-wide, not project-specific).
 
 ## Requirements
-- **Node.js**: v26 LTS (Current as of 2026). Managed via nvm (`.nvmrc` pending).
+- **Node.js**: v26 LTS (Current as of 2026). Managed via nvm (`.nvmrc`).
 - **Package manager**: `npm` for dependency management (`package.json`, `package-lock.json`).
 
 ## Development Rules
