@@ -150,7 +150,7 @@
       },
     },
     "build": {
-      "model": "google/gemini-3.5-flash",
+      "model": "google/gemini-3-flash-preview",
       "temperature": 0.0,
     },
     "scout": {
