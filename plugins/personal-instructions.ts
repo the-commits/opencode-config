@@ -129,17 +129,22 @@ export const PersonalInstructions: Plugin = async ({ client, directory, worktree
 	return {
 		event: async ({ event }) => {
 			// Trigger 1: new session created (startup)
+			// SDK v1: properties.info.id | SDK v2: properties.sessionID | Runtime: properties.id
 			if (event.type === "session.created") {
-				const session = event.properties as { id?: string }
-				if (!session.id) return
-				await checkAndPrompt(session.id)
+				const props = event.properties as { id?: string; sessionID?: string; info?: { id?: string } }
+				const sessionId = props.sessionID || props.id || props.info?.id
+				if (!sessionId) return
+				await checkAndPrompt(sessionId)
 			}
 
 			// Trigger 2: /init command executed (re-check after AGENTS.md may have changed)
+			// SDK: properties.name, properties.sessionID
 			if (event.type === "command.executed") {
-				const cmd = event.properties as { command?: string; sessionId?: string }
-				if (cmd.command !== "init" || !cmd.sessionId) return
-				await checkAndPrompt(cmd.sessionId)
+				const cmd = event.properties as { name?: string; command?: string; sessionID?: string; sessionId?: string }
+				const cmdName = cmd.name ?? cmd.command
+				const sessionId = cmd.sessionID ?? cmd.sessionId
+				if (cmdName !== "init" || !sessionId) return
+				await checkAndPrompt(sessionId)
 			}
 		},
 	}

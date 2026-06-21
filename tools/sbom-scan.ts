@@ -78,7 +78,7 @@ export default tool({
 						{ cwd: directory, stdio: "pipe" },
 					);
 					lines.push("Triggered first workflow run.");
-			} catch (err) {
+				} catch {
 					lines.push(
 						"Could not trigger workflow run automatically. " +
 						"The workflow will run on the next push or PR.",
