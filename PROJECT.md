@@ -49,7 +49,7 @@ This document contains specific instructions for AI agents and developers workin
 - **Immutable releases:** This repo enforces immutable tag rules. Once a tag is pushed, it cannot be deleted or overwritten remotely. Always verify locally with `git tag -v <tag>` before pushing.
 - **Signing setup:** `ssh-agent` must be running with the GitHub key loaded (`add2agent GitHub`). GPG signing key is configured via `git config user.signingkey` with `gpg.format = openpgp`.
 - **Release flow:** The tag MUST be created after the PR merge, never before. Correct order:
-  1. Bump version in `package.json` + `package-lock.json` + `README.md`
+  1. Bump version in `package.json` + `package-lock.json` + `README.md` (checkout instructions). Update `CONTRIBUTING.md` (test counts), `PROJECT.md` (architecture listing), and `AGENTS.md` (agent guidelines) if anything changed during the release cycle. Docs are part of the release — stale docs are a bug.
   2. Commit with `-S` on a release branch (e.g. `release/v<x.y.z>`)
   3. Push the branch and create a PR (`gh pr create`)
   4. Squash merge the PR (`gh pr merge <n> --squash --delete-branch`)
