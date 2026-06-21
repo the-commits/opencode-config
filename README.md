@@ -68,7 +68,7 @@ git clone https://github.com/<you>/opencode-config.git ~/.config/opencode
 cd ~/.config/opencode
 
 # Check out the latest release
-git checkout v3.3.0
+git checkout v3.4.0
 
 # Install dependencies (ignore-scripts=true in .npmrc blocks lifecycle scripts)
 npm install
@@ -84,7 +84,7 @@ Pull new releases from upstream and check out the tag:
 ```bash
 cd ~/.config/opencode
 git fetch --tags
-git checkout v3.3.0
+git checkout v3.4.0
 npm install
 npx husky
 ```
