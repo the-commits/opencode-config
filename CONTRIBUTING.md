@@ -27,7 +27,7 @@ Tests use [Bun's built-in test runner](https://bun.sh/docs/cli/test) (`bun:test`
 
 ### Unit tests (~100ms)
 
-315 tests across 19 modules covering the supply chain guard, PHP tooling, personal instructions, and the shared `resolveConfigDir` utility. Pure, fast, no external dependencies.
+316 tests across 19 modules covering the supply chain guard, PHP tooling, personal instructions, and the shared `resolveConfigDir` utility. Pure, fast, no external dependencies.
 
 ```bash
 SKIP_E2E=1 bun test
