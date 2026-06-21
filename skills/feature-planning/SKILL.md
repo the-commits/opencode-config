@@ -3,10 +3,12 @@ name: feature-planning
 description: >-
   Guide users through writing agile features including user stories,
   acceptance criteria, story splitting, estimation, and definition of done.
-  Use when the user asks to plan a feature, write user stories, create
-  acceptance criteria, define requirements, break down work, do sprint planning,
-  agile planning, story mapping, backlog grooming, create product backlog items,
-  or define epic/story/task breakdown.
+  After estimation, recommends the appropriate implementation mode (build
+  or build-meticulous) based on story sizes. Use when the user asks to plan
+  a feature, write user stories, create acceptance criteria, define
+  requirements, break down work, do sprint planning, agile planning, story
+  mapping, backlog grooming, create product backlog items, or define
+  epic/story/task breakdown.
 compatibility: opencode
 metadata:
   audience: developers
@@ -127,6 +129,34 @@ Provide a rough sense of effort for each story.
 
 **Output:** Each story with a suggested size/estimate.
 
+### After estimation: Recommend implementation mode
+
+Once every story has an estimate, evaluate the sizes:
+
+- **All stories are XS or S** → These stories are small enough for standard
+  **"build" mode**. The agent can implement each story directly without
+  requiring a deeper analysis phase. Tell the user: *"All stories are XS or S,
+  so a standard build is appropriate."*
+
+- **Any story is M or larger** → These stories need deeper analysis before
+  coding. Recommend **"build-meticulous" mode**, which enforces a rigorous
+  5-phase workflow (understand → design → decompose → implement → verify).
+  Before proceeding to implementation:
+
+  1. Flag all stories estimated M or larger.
+  2. Split each flagged story until every resulting sub‑story is S or XS
+     (use the splitting patterns from Step 4).
+  3. Re‑estimate the split stories.
+  4. Confirm the new breakdown with the user.
+
+  Explain to the user: *"Some of these stories are large and need deeper
+  analysis before implementation. I recommend switching to build-meticulous
+  mode, which will break them into smaller parts and verify each one
+  thoroughly."*
+
+**Output:** A recommended implementation mode (build or build-meticulous) and,
+if applicable, a revised story breakdown with all stories at S or XS.
+
 ---
 
 ## Step 6: Definition of Done checklist
@@ -174,6 +204,15 @@ Compile everything into a structured markdown document ready for a backlog or is
 - Story 1: [Size]
 - Story 2: [Size]
 …
+
+## Recommended Implementation Mode
+**Mode:** [build | build-meticulous]
+
+[If build-meticulous: M‑and‑larger stories were split to S or XS after
+ estimation. See revised breakdown below.]
+
+## Revised Story Breakdown (if applicable)
+[Only included when splitting was needed. List of final S/XS stories.]
 
 ## Definition of Done
 - [ ] Item 1

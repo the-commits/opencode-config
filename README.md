@@ -146,13 +146,13 @@ All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cit
 
 `scout` is the default mode — a lightweight research and exploration agent using `opencode/big-pickle` with `websearch_cited` and Chrome DevTools for fetching and browsing information. It runs at temperature 0.1 with `top_k: 30` for focused, factual outputs, and is capped at 10 agentic steps to keep sessions short. It never edits or writes files.
 
-`build-meticulous` is a structured build mode with a five-phase workflow (understand, design, decompose, implement, verify) that enforces TDD and ruthless self-review.
+`build-meticulous` is a structured build mode with a five-phase workflow (understand, design, decompose, implement, verify) that enforces TDD, deep observability via MCP tooling (Semgrep, Chrome DevTools, Xdebug), and ruthless self-review with profiling.
 
 ### Skills
 
 `skills/` & `tools/` -- Domain-specific workflows that the agent can load on demand.
 
-- **Feature Planning** (`/feature`): A dedicated skill for agile planning. When you ask to plan a feature, write user stories, or break down an epic, the agent loads `skills/feature-planning/SKILL.md` to guide the session, define acceptance criteria, and establish a definition of done. Runs in **plan** mode.
+- **Feature Planning** (`/feature`): A dedicated skill for agile planning. When you ask to plan a feature, write user stories, or break down an epic, the agent loads `skills/feature-planning/SKILL.md` to guide the session, define acceptance criteria, and establish a definition of done. Runs in **plan** mode. After estimation, recommends whether to implement in **build** mode (all stories XS/S) or **build-meticulous** mode (any M+ stories — splits down to S/XS first).
 
 - **Vulnerability Handling** (`/vuln`): A structured workflow for handling CVE/CWE vulnerabilities. Guides through identification, risk assessment, site-wide E2E testing, fixing, version-locking, and PR documentation. Transitions through modes automatically: **analyze** (identify) → **plan** (assess risk) → **build** (write tests, fix, document). When no CVE is provided, auto-discovers vulnerabilities via Dependabot alerts, SARIF/CodeQL results, SBOM data, or local audit tools.
 

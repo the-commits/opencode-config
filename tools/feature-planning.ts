@@ -8,7 +8,10 @@ export default tool({
 		"to plan a feature, write user stories, create acceptance criteria, " +
 		"define requirements, break down work, do sprint planning, write a " +
 		"feature spec, do agile planning, story mapping, backlog grooming, " +
-		"create a product backlog item, or define epic/story/task breakdown.",
+		"create a product backlog item, or define epic/story/task breakdown. " +
+		"After estimation, recommends the appropriate implementation mode: " +
+		"build (all stories XS/S) or build-meticulous (any M+ story — splits " +
+		"down to S/XS before implementation).",
 	args: {
 		feature_idea: tool.schema
 			.string()
