@@ -115,7 +115,6 @@
   },
   "mode": {
     "brainstorm": {
-      "model": "google/gemini-3.1-pro-preview",
       "temperature": 0.5,
       "prompt": "{file:./prompts/brainstorm.txt}",
       "permission": {
@@ -125,7 +124,6 @@
       },
     },
     "plan": {
-      "model": "google/gemini-3.1-pro-preview",
       "temperature": 0.1,
       "permission": {
         "bash": "deny",
@@ -134,7 +132,6 @@
       },
     },
     "analyze": {
-      "model": "google/gemini-3.1-pro-preview",
       "temperature": 0.1,
       "prompt": "{file:./prompts/analysis.txt}",
       "options": {
@@ -150,17 +147,14 @@
       },
     },
     "build": {
-      "model": "google/gemini-3.1-pro-preview",
       "temperature": 0.0,
       "prompt": "{file:./prompts/build.txt}",
     },
     "build-lite": {
-      "model": "google/gemini-2.5-flash",
       "temperature": 0.0,
       "prompt": "{file:./prompts/build-lite.txt}",
     },
     "scout": {
-      "model": "opencode/big-pickle",
       "temperature": 0.1,
       "prompt": "{file:./prompts/scout.txt}",
       "options": {
@@ -173,7 +167,6 @@
       },
     },
     "build-meticulous": {
-      "model": "opencode-go/glm-5.2",
       "temperature": 0.0,
       "prompt": "{file:./prompts/build-meticulous.txt}",
     },
