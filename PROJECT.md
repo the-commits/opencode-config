@@ -4,11 +4,12 @@ This document contains specific instructions for AI agents and developers workin
 
 ## Project Architecture
 - `plugins/supply-chain-guard/` - Core supply chain scanning plugin (detection, scanner, cache, formatting, hashing, ecosystems).
+- `plugins/personal-instructions.ts` - Startup plugin that detects and prompts for per-developer personal instructions setup (`.opencode/personal/AGENTS.md`).
 - `semgrep/recipes/` - Custom Semgrep YAML rules for npm, PyPI, RubyGems, Composer, Maven/Gradle, NuGet, Cargo, Go, C/C++, C#, Java, PHP, Python, Ruby, Rust, JS/TS.
 - `secrets/secret-patterns.txt` - Curated prefix-based regex patterns for the pre-push secret scanner.
 - `tools/` - Custom tools: feature-planning, math, sbom-scan, vulnerability-handling.
 - `commands/` - Custom slash commands: `/feature`, `/vuln`.
-- `lib/` - Shared utilities (resolve-config-dir, sbom-scan, text-to-number, php-tooling-internals).
+- `lib/` - Shared utilities (resolve-config-dir, sbom-scan, text-to-number, php-tooling-internals, personal-instructions-internals).
 - `prompts/` - Agent mode prompts (analysis.txt, brainstorm.txt, build-meticulous.txt, scout.txt).
 - `.husky/pre-push` - Pre-push hook: unit tests, E2E tests, secret scanning.
 - `.opencode/opencode.jsonc` - Project-level opencode config (overrides global defaults).

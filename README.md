@@ -91,6 +91,22 @@ Once active, the Xdebug MCP server provides:
 - Logic error analysis with targeted fix suggestions
 - Native Docker-based PHP setup support
 
+#### Personal Instructions (Auto-detected)
+
+`plugins/personal-instructions.ts` -- Detects whether per-developer personal instructions are set up in each project. Uses a deterministic state machine (mirrors the xdebug plugin) with cross-platform Node.js `fs` detection (no shell commands — works on Windows without WSL):
+
+- **All configured** → skips silently (idempotent)
+- **Nothing configured** → prompts the user to opt in to full setup
+- **Partially configured** → lists only what's missing and asks for per-item confirmation
+
+Setting it up creates:
+- `.opencode/personal/AGENTS.md` — gitignored, per-developer agent instructions (not shared with the team)
+- `instructions` reference in `opencode.jsonc` so OpenCode loads the personal file
+- `.opencode/personal/*` entry in `.gitignore`
+- One-line architecture note in `AGENTS.md`
+
+Detection also re-runs when `/init` is executed, so the setup prompt appears consistently whether you start a new session or run `/init`.
+
 ### Semgrep Security Recipes
 
 `semgrep/recipes/` -- 292 custom rules across 15 recipe files covering JS/TS, PHP, C#, Ruby, Java, Python, Rust, Go, and C/C++:
