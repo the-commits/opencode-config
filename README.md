@@ -139,7 +139,7 @@ Six modes configured in `opencode.jsonc`, each with temperature tuning and permi
 | `brainstorm` | `gemini-3.1-pro-preview` | 0.5 | Read-only | `prompts/brainstorm.txt` |
 | `plan` | `gemini-3.1-pro-preview` | 0.1 | Read-only | Default |
 | `analyze` | `gemini-3.1-pro-preview` | 0.1 | Read-only | `prompts/analysis.txt` |
-| `build` | `gemini-3.5-flash` | 0.0 | Full | Default |
+| `build` | `gemini-3-flash-preview` | 0.0 | Full | Default |
 | `build-meticulous` | `glm-5.2` | 0.0 | Full | `prompts/build-meticulous.txt` |
 
 All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field -- read-only modes deny `edit` and `write`. `scout` allows `bash` for man pages and read-only commands but denies file modification.
@@ -239,9 +239,10 @@ When you open OpenCode inside any code project, these things kick in automatical
 - **Env Protection** blocks the agent from touching your `.env` files
 - **Successful Editing** verifies edits via LSP before the agent moves on
 - **PHP Tooling** auto-provisions Xdebug MCP if the project is PHP (creates or suggests adding to the project's `opencode.jsonc`)
+- **Personal Instructions** detects whether per-developer personal instructions are set up and prompts to create `.opencode/personal/AGENTS.md` (gitignored, not shared with the team)
 - **Secret scanning** runs on every `git push` via the pre-push hook
 
-Project-specific configuration goes in the project's own `opencode.jsonc` (or `opencode.json`). The PHP Tooling plugin creates this automatically for PHP projects. For other project-specific MCP servers or overrides, create this file yourself at the project root.
+Project-specific configuration goes in the project's own `opencode.jsonc` (or `opencode.json`). The PHP Tooling plugin creates this automatically for PHP projects. The Personal Instructions plugin prompts you to set up a gitignored `.opencode/personal/AGENTS.md` for per-developer overrides. For other project-specific MCP servers or overrides, create this file yourself at the project root.
 
 ---
 
