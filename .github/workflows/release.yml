@@ -14,9 +14,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      - name: Setup Node.js 26 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
 
       - name: Find previous tag
         id: prev_tag
@@ -69,11 +74,29 @@ jobs:
             echo 'CHANGELOG_EOF'
           } >> "$GITHUB_OUTPUT"
 
+          # Also write to file for gh release create (avoids Node 20 deprecation in softprops/action-gh-release@v2)
+          {
+            [ -n "$FEATURES" ] && printf "## Features\n%b\n\n" "$FEATURES"
+            [ -n "$FIXES" ] && printf "## Fixes\n%b\n\n" "$FIXES"
+            [ -n "$DOCS" ] && printf "## Documentation\n%b\n\n" "$DOCS"
+            [ -n "$CHORES" ] && printf "## Maintenance\n%b\n\n" "$CHORES"
+            [ -n "$OTHER" ] && printf "## Other\n%b\n\n" "$OTHER"
+          } > /tmp/release-notes.md
+
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.prev_tag.outputs.current }}
-          name: ${{ steps.prev_tag.outputs.current }}
-          body: ${{ steps.changelog.outputs.body }}
-          draft: false
-          prerelease: ${{ contains(steps.prev_tag.outputs.current, '-') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.prev_tag.outputs.current }}"
+          PRERELEASE="${{ contains(steps.prev_tag.outputs.current, '-') }}"
+
+          if gh release view "$TAG" &>/dev/null; then
+            echo "Release $TAG already exists, skipping creation."
+          else
+            PRERELEASE_FLAG=""
+            [ "$PRERELEASE" = "true" ] && PRERELEASE_FLAG="--prerelease"
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --notes-file /tmp/release-notes.md \
+              $PRERELEASE_FLAG
+          fi
