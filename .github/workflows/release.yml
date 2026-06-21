@@ -53,6 +53,8 @@ jobs:
           CHORES=""
           OTHER=""
 
+          # Use process substitution instead of here-string to avoid
+          # bash set -e incompatibility with here-strings on GitHub runners
           while IFS= read -r line; do
             [ -z "$line" ] && continue
             case "$line" in
@@ -62,7 +64,7 @@ jobs:
               chore:*|chore\(*|build:*|build\(*)  CHORES="${CHORES}\n- ${line}" ;;
               *)                                  OTHER="${OTHER}\n- ${line}" ;;
             esac
-          done <<< "$COMMITS"
+          done < <(printf '%s\n' "$COMMITS")
 
           {
             echo 'body<<CHANGELOG_EOF'
