@@ -126,3 +126,105 @@ export function detectState(projectDir: string): PersonalInstructionsState {
 		agentsNote: hasAgentsNote(projectDir),
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Setup functions (Stories 3a + 3b)
+// ---------------------------------------------------------------------------
+
+/** Content for the starter personal instructions file. */
+const PERSONAL_FILE_CONTENT = [
+	"# Personal Agent Instructions",
+	"",
+	"> This file is for your personal, per-project agent instructions.",
+	"> It is gitignored and not shared with your team.",
+	"> Add any agent customizations specific to you and this project below.",
+	"",
+].join("\n")
+
+/**
+ * Create the .opencode/personal/AGENTS.md file with an info alert.
+ * Does NOT overwrite if the file already exists (idempotent).
+ */
+export function createPersonalFile(projectDir: string): void {
+	const filePath = path.join(projectDir, PERSONAL_INSTRUCTIONS_PATH)
+	if (fs.existsSync(filePath)) return
+
+	fs.mkdirSync(path.dirname(filePath), { recursive: true })
+	fs.writeFileSync(filePath, PERSONAL_FILE_CONTENT, "utf-8")
+}
+
+/**
+ * Add the personal instructions path to the project config's instructions array.
+ * Creates opencode.jsonc if no config file exists.
+ * Does NOT duplicate the entry if already present (idempotent).
+ */
+export function addInstructionsReference(projectDir: string): void {
+	const configPath = findProjectConfig(projectDir)
+
+	if (!configPath) {
+		const newConfigPath = path.join(projectDir, CONFIG_FILENAMES[0])
+		const config = { instructions: [PERSONAL_INSTRUCTIONS_PATH] }
+		fs.writeFileSync(newConfigPath, JSON.stringify(config, null, "\t") + "\n", "utf-8")
+		return
+	}
+
+	try {
+		const raw = fs.readFileSync(configPath, "utf-8")
+		const stripped = stripJsoncComments(raw)
+		const config = JSON.parse(stripped)
+
+		if (!Array.isArray(config.instructions)) {
+			config.instructions = []
+		}
+		if (!config.instructions.includes(PERSONAL_INSTRUCTIONS_PATH)) {
+			config.instructions.push(PERSONAL_INSTRUCTIONS_PATH)
+		}
+
+		fs.writeFileSync(configPath, JSON.stringify(config, null, "\t") + "\n", "utf-8")
+	} catch {
+		// Unparseable config — skip rather than corrupt the file
+	}
+}
+
+/**
+ * Add the personal instructions pattern to .gitignore.
+ * Creates .gitignore if it doesn't exist.
+ * Does NOT duplicate the line if already present (idempotent).
+ */
+export function addGitignoreCoverage(projectDir: string): void {
+	const gitignorePath = path.join(projectDir, ".gitignore")
+
+	if (!fs.existsSync(gitignorePath)) {
+		fs.writeFileSync(gitignorePath, PERSONAL_GITIGNORE_PATTERN + "\n", "utf-8")
+		return
+	}
+
+	const raw = fs.readFileSync(gitignorePath, "utf-8")
+	const lines = raw.split("\n")
+	if (lines.includes(PERSONAL_GITIGNORE_PATTERN)) return
+
+	const needsNewline = raw.length > 0 && !raw.endsWith("\n")
+	const prefix = needsNewline ? "\n" : ""
+	fs.writeFileSync(gitignorePath, raw + prefix + PERSONAL_GITIGNORE_PATTERN + "\n", "utf-8")
+}
+
+/**
+ * Add the one-line architecture note to AGENTS.md.
+ * Creates AGENTS.md if it doesn't exist.
+ * Does NOT duplicate the note if already present (idempotent).
+ */
+export function addAgentsNote(projectDir: string): void {
+	const agentsPath = path.join(projectDir, "AGENTS.md")
+
+	if (!fs.existsSync(agentsPath)) {
+		fs.writeFileSync(agentsPath, PERSONAL_AGENTS_NOTE + "\n", "utf-8")
+		return
+	}
+
+	const raw = fs.readFileSync(agentsPath, "utf-8")
+	if (raw.includes(PERSONAL_INSTRUCTIONS_PATH)) return
+
+	const needsNewline = raw.length > 0 && !raw.endsWith("\n")
+	const prefix = needsNewline ? "\n" : ""
+	fs.writeFileSync(agentsPath, raw + prefix + PERSONAL_AGENTS_NOTE + "\n", "utf-8")
+}
