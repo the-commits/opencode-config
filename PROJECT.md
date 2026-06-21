@@ -4,15 +4,16 @@ This document contains specific instructions for AI agents and developers workin
 
 ## Project Architecture
 - `plugins/supply-chain-guard/` - Core supply chain scanning plugin (detection, scanner, cache, formatting, hashing, ecosystems).
+- `plugins/personal-instructions.ts` - Startup plugin that detects and prompts for per-developer personal instructions setup (`.opencode/personal/AGENTS.md`).
 - `semgrep/recipes/` - Custom Semgrep YAML rules for npm, PyPI, RubyGems, Composer, Maven/Gradle, NuGet, Cargo, Go, C/C++, C#, Java, PHP, Python, Ruby, Rust, JS/TS.
 - `secrets/secret-patterns.txt` - Curated prefix-based regex patterns for the pre-push secret scanner.
 - `tools/` - Custom tools: feature-planning, math, sbom-scan, vulnerability-handling.
 - `commands/` - Custom slash commands: `/feature`, `/vuln`.
-- `lib/` - Shared utilities (resolve-config-dir, sbom-scan, text-to-number, php-tooling-internals).
+- `lib/` - Shared utilities (resolve-config-dir, sbom-scan, text-to-number, php-tooling-internals, personal-instructions-internals).
 - `prompts/` - Agent mode prompts (analysis.txt, brainstorm.txt, build-meticulous.txt, scout.txt).
 - `.husky/pre-push` - Pre-push hook: unit tests, E2E tests, secret scanning.
 - `.opencode/opencode.jsonc` - Project-level opencode config (overrides global defaults).
-- `.opencode/specs/` - Temporary feature spec files (tracked in Git for PR visibility, pruned before releases via `scripts/prune-specs.sh`).
+- `.opencode/specs/` - Temporary feature spec files (tracked in Git for PR visibility, pruned before releases via `scripts/prune-specs.mjs`).
 - `.trivyignore` - Accepted Trivy vulnerability exceptions with re-evaluation dates.
 - `opencode.jsonc` - The main global configuration template.
 - `AGENTS.md` - The global agent guidelines template (system-wide, not project-specific).
@@ -39,7 +40,7 @@ This document contains specific instructions for AI agents and developers workin
 - **Immutable releases:** This repo enforces immutable tag rules. Once a tag is pushed, it cannot be deleted or overwritten remotely. Always verify locally with `git tag -v <tag>` before pushing.
 - **Signing setup:** `ssh-agent` must be running with the GitHub key loaded (`add2agent GitHub`). GPG signing key is configured via `git config user.signingkey` with `gpg.format = openpgp`.
 - **Release flow:** Bump version in `package.json` + `README.md` → commit with `-S` → `git tag -s v<x.y.z>` → push branch → push tag → `gh release create`.
-- **Spec pruning:** Before tagging a release, run `./scripts/prune-specs.sh` to remove `.opencode/specs/`. Verify with `./scripts/prune-specs.sh --check` that no spec files remain. Specs are planning artifacts and must not ship in release tags.
+- **Spec pruning:** Before tagging a release, run `node scripts/prune-specs.mjs` to remove `.opencode/specs/`. Verify with `node scripts/prune-specs.mjs --check` that no spec files remain. Specs are planning artifacts and must not ship in release tags.
 
 ## Context
 When modifying this repository, remember that you are modifying the *global* configuration that will be distributed to all users. Keep `AGENTS.md` general enough for all projects, and keep `opencode.jsonc` clean.

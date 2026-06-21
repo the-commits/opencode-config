@@ -91,6 +91,22 @@ Once active, the Xdebug MCP server provides:
 - Logic error analysis with targeted fix suggestions
 - Native Docker-based PHP setup support
 
+#### Personal Instructions (Auto-detected)
+
+`plugins/personal-instructions.ts` -- Detects whether per-developer personal instructions are set up in each project. Uses a deterministic state machine (mirrors the xdebug plugin) with cross-platform Node.js `fs` detection (no shell commands — works on Windows without WSL):
+
+- **All configured** → skips silently (idempotent)
+- **Nothing configured** → prompts the user to opt in to full setup
+- **Partially configured** → lists only what's missing and asks for per-item confirmation
+
+Setting it up creates:
+- `.opencode/personal/AGENTS.md` — gitignored, per-developer agent instructions (not shared with the team)
+- `instructions` reference in `opencode.jsonc` so OpenCode loads the personal file
+- `.opencode/personal/*` entry in `.gitignore`
+- One-line architecture note in `AGENTS.md`
+
+Detection also re-runs when `/init` is executed, so the setup prompt appears consistently whether you start a new session or run `/init`.
+
 ### Semgrep Security Recipes
 
 `semgrep/recipes/` -- 292 custom rules across 15 recipe files covering JS/TS, PHP, C#, Ruby, Java, Python, Rust, Go, and C/C++:
@@ -123,7 +139,7 @@ Six modes configured in `opencode.jsonc`, each with temperature tuning and permi
 | `brainstorm` | `gemini-3.1-pro-preview` | 0.5 | Read-only | `prompts/brainstorm.txt` |
 | `plan` | `gemini-3.1-pro-preview` | 0.1 | Read-only | Default |
 | `analyze` | `gemini-3.1-pro-preview` | 0.1 | Read-only | `prompts/analysis.txt` |
-| `build` | `gemini-3.5-flash` | 0.0 | Full | Default |
+| `build` | `gemini-3-flash-preview` | 0.0 | Full | Default |
 | `build-meticulous` | `glm-5.2` | 0.0 | Full | `prompts/build-meticulous.txt` |
 
 All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field -- read-only modes deny `edit` and `write`. `scout` allows `bash` for man pages and read-only commands but denies file modification.
@@ -223,9 +239,10 @@ When you open OpenCode inside any code project, these things kick in automatical
 - **Env Protection** blocks the agent from touching your `.env` files
 - **Successful Editing** verifies edits via LSP before the agent moves on
 - **PHP Tooling** auto-provisions Xdebug MCP if the project is PHP (creates or suggests adding to the project's `opencode.jsonc`)
+- **Personal Instructions** detects whether per-developer personal instructions are set up and prompts to create `.opencode/personal/AGENTS.md` (gitignored, not shared with the team)
 - **Secret scanning** runs on every `git push` via the pre-push hook
 
-Project-specific configuration goes in the project's own `opencode.jsonc` (or `opencode.json`). The PHP Tooling plugin creates this automatically for PHP projects. For other project-specific MCP servers or overrides, create this file yourself at the project root.
+Project-specific configuration goes in the project's own `opencode.jsonc` (or `opencode.json`). The PHP Tooling plugin creates this automatically for PHP projects. The Personal Instructions plugin prompts you to set up a gitignored `.opencode/personal/AGENTS.md` for per-developer overrides. For other project-specific MCP servers or overrides, create this file yourself at the project root.
 
 ---
 
