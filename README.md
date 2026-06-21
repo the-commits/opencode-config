@@ -131,7 +131,7 @@ Detection also re-runs when `/init` is executed, so the setup prompt appears con
 
 ### Agent Modes
 
-Six modes configured in `opencode.jsonc`, each with temperature tuning and permission constraints:
+Seven modes configured in `opencode.jsonc`, each with temperature tuning and permission constraints:
 
 | Mode | Model | Temperature | Write access | Prompt |
 |---|---|---|---|---|
@@ -139,20 +139,25 @@ Six modes configured in `opencode.jsonc`, each with temperature tuning and permi
 | `brainstorm` | `gemini-3.1-pro-preview` | 0.5 | Read-only | `prompts/brainstorm.txt` |
 | `plan` | `gemini-3.1-pro-preview` | 0.1 | Read-only | Default |
 | `analyze` | `gemini-3.1-pro-preview` | 0.1 | Read-only | `prompts/analysis.txt` |
-| `build` | `gemini-3-flash-preview` | 0.0 | Full | Default |
+| `build` | `gemini-3-pro-preview` | 0.0 | Full | `prompts/build.txt` |
+| `build-lite` | `gemini-3-flash-preview` | 0.0 | Full | `prompts/build-lite.txt` |
 | `build-meticulous` | `glm-5.2` | 0.0 | Full | `prompts/build-meticulous.txt` |
 
 All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field -- read-only modes deny `edit` and `write`. `scout` allows `bash` for man pages and read-only commands but denies file modification.
 
 `scout` is the default mode — a lightweight research and exploration agent using `opencode/big-pickle` with `websearch_cited` and Chrome DevTools for fetching and browsing information. It runs at temperature 0.1 with `top_k: 30` for focused, factual outputs, and is capped at 10 agentic steps to keep sessions short. It never edits or writes files.
 
-`build-meticulous` is a structured build mode with a five-phase workflow (understand, design, decompose, implement, verify) that enforces TDD, deep observability via MCP tooling (Semgrep, Chrome DevTools, Xdebug), and ruthless self-review with profiling.
+`build` is an orchestrator mode — it can build anything, but splits work into XS sub-tasks and delegates implementation to build-lite sub-agents. One sub-agent is often enough; only parallelize when sub-tasks are genuinely independent.
+
+`build-meticulous` is a structured build mode with a five-phase workflow (understand, design, decompose, implement, verify) that enforces TDD, deep observability via MCP tooling (Semgrep, Chrome DevTools, Xdebug), and ruthless self-review with profiling. It orchestrates implementation through subagent escalation: build-lite (1–3 loops) → build (1–3 loops) → self.
+
+`build-lite` is a lightweight build mode for small (XS) tasks — uses a fast flash model for quick, low-overhead implementation.
 
 ### Skills
 
 `skills/` & `tools/` -- Domain-specific workflows that the agent can load on demand.
 
-- **Feature Planning** (`/feature`): A dedicated skill for agile planning. When you ask to plan a feature, write user stories, or break down an epic, the agent loads `skills/feature-planning/SKILL.md` to guide the session, define acceptance criteria, and establish a definition of done. Runs in **plan** mode. After estimation, recommends whether to implement in **build** mode (all stories XS/S) or **build-meticulous** mode (any M+ stories — splits down to S/XS first).
+- **Feature Planning** (`/feature`): A dedicated skill for agile planning. When you ask to plan a feature, write user stories, or break down an epic, the agent loads `skills/feature-planning/SKILL.md` to guide the session, define acceptance criteria, and establish a definition of done. Runs in **plan** mode. After estimation, recommends whether to implement in **build-lite** mode (all stories XS), **build** mode (S stories), or **build-meticulous** mode (any M+ stories — splits down to S/XS first).
 
 - **Vulnerability Handling** (`/vuln`): A structured workflow for handling CVE/CWE vulnerabilities. Guides through identification, risk assessment, site-wide E2E testing, fixing, version-locking, and PR documentation. Transitions through modes automatically: **analyze** (identify) → **plan** (assess risk) → **build** (write tests, fix, document). When no CVE is provided, auto-discovers vulnerabilities via Dependabot alerts, SARIF/CodeQL results, SBOM data, or local audit tools.
 
@@ -265,7 +270,7 @@ Allow new package versions some time to circulate before upgrading. Review chang
 
 - DRY-first approach (reuse > libraries > conventions > new code)
 - Security protocol: run semgrep on `node_modules` when first working with a project
-- Mode-specific guidelines (analyze, build, build-meticulous, plan, brainstorm)
+- Mode-specific guidelines (analyze, build, build-lite, build-meticulous, plan, brainstorm)
 
 ---
 

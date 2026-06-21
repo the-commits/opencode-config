@@ -10,8 +10,9 @@ export default tool({
 		"feature spec, do agile planning, story mapping, backlog grooming, " +
 		"create a product backlog item, or define epic/story/task breakdown. " +
 		"After estimation, recommends the appropriate implementation mode: " +
-		"build (all stories XS/S) or build-meticulous (any M+ story — splits " +
-		"down to S/XS before implementation).",
+		"build-lite (all stories XS), build (S stories), or build-meticulous " +
+		"(any M+ story — splits down to S/XS before implementation). " +
+		"Recommends TDD (red-green-refactor) for S and M+ stories.",
 	args: {
 		feature_idea: tool.schema
 			.string()

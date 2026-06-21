@@ -99,6 +99,10 @@ Follow analysis frameworks: dissect components, contextualize ecosystem, invert 
 
 Focus on correctness and efficiency. All tools are enabled for maximum productivity. This is the only mode with write and execution permissions.
 
+### Build-Lite Mode (full access, temperature: 0.0)
+
+A lightweight build mode for small (XS) tasks. Uses a fast flash model for quick, low-overhead implementation. All tools are enabled. Use for trivial changes that don't require deep analysis.
+
 ### Build-Meticulous Mode (full access, temperature: 0.0)
 
 A structured build mode with a five-phase workflow: understand, design, decompose, implement, verify. Enforces TDD (red-green-refactor), minimal changes, and ruthless self-review. All tools are enabled. Use for complex, multi-step tasks where thoroughness matters more than speed.
@@ -129,3 +133,27 @@ Be proactive when asked to solve problems, but avoid taking unsolicited actions.
 
 ## Security
 When first working with a project that has node_modules (or equivalent dependency directory), run `semgrep --config ~/.config/opencode/semgrep/recipes/ --no-git-ignore --exclude='!node_modules' node_modules/` to audit dependencies for supply chain backdoors and inventory outbound network calls.
+
+<!-- codebase-memory-mcp:start -->
+# Codebase Knowledge Graph (codebase-memory-mcp)
+
+This project uses codebase-memory-mcp to maintain a knowledge graph of the codebase.
+ALWAYS prefer MCP graph tools over grep/glob/file-search for code discovery.
+
+## Priority Order
+1. `search_graph` — find functions, classes, routes, variables by pattern
+2. `trace_path` — trace who calls a function or what it calls
+3. `get_code_snippet` — read specific function/class source code
+4. `query_graph` — run Cypher queries for complex patterns
+5. `get_architecture` — high-level project summary
+
+## When to fall back to grep/glob
+- Searching for string literals, error messages, config values
+- Searching non-code files (Dockerfiles, shell scripts, configs)
+- When MCP tools return insufficient results
+
+## Examples
+- Find a handler: `search_graph(name_pattern=".*OrderHandler.*")`
+- Who calls it: `trace_path(function_name="OrderHandler", direction="inbound")`
+- Read source: `get_code_snippet(qualified_name="pkg/orders.OrderHandler")`
+<!-- codebase-memory-mcp:end -->
