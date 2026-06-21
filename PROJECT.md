@@ -48,7 +48,17 @@ This document contains specific instructions for AI agents and developers workin
 - **Signed tags, not just signed commits:** GitHub marks a release "Verified" only when the *tag object itself* is signed (`git tag -s`), not merely the commit it points to. A signed commit with an unsigned tag shows as "Unverified."
 - **Immutable releases:** This repo enforces immutable tag rules. Once a tag is pushed, it cannot be deleted or overwritten remotely. Always verify locally with `git tag -v <tag>` before pushing.
 - **Signing setup:** `ssh-agent` must be running with the GitHub key loaded (`add2agent GitHub`). GPG signing key is configured via `git config user.signingkey` with `gpg.format = openpgp`.
-- **Release flow:** Bump version in `package.json` + `package-lock.json` + `README.md` → commit with `-S` → `git tag -s v<x.y.z>` → push branch → push tag → `gh release create`.
+- **Release flow:** The tag MUST be created after the PR merge, never before. Correct order:
+  1. Bump version in `package.json` + `package-lock.json` + `README.md`
+  2. Commit with `-S` on a release branch (e.g. `release/v<x.y.z>`)
+  3. Push the branch and create a PR (`gh pr create`)
+  4. Squash merge the PR (`gh pr merge <n> --squash --delete-branch`)
+  5. Sync local main: `git checkout main && git reset --hard origin/main && git remote prune origin`
+  6. Run the full pre-release checklist (see below)
+  7. Tag the merged commit: `git tag -s v<x.y.z>` (verify with `git tag -v v<x.y.z>`)
+  8. Push the tag: `git push origin v<x.y.z>`
+  9. Create the release: `gh release create v<x.y.z>`
+  Tagging before merge means the tag points to a stale commit without review fixes. The tag must always point to the final squashed merge commit on main.
 - **Spec pruning:** Before tagging a release, run `node scripts/prune-specs.mjs` to remove `.opencode/specs/`. Verify with `node scripts/prune-specs.mjs --check` that no spec files remain. Specs are planning artifacts and must not ship in release tags.
 - **Pre-release checklist:** Before tagging, verify ALL of the following:
   1. `package.json` and `package-lock.json` versions match (run `npm install` to sync, then `rm -rf node_modules && npm ci` to verify clean install)
