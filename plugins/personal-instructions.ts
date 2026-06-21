@@ -44,8 +44,8 @@ function buildFullSetupPrompt(): string {
 		"",
 		"None of these files will be overwritten if they already exist.",
 		"",
-		"Ask the user if they want you to set this up. If they say yes, create all four",
-		"and confirm when done. If they say no, do nothing.",
+		"This is informational only. If the user asks about setting up personal",
+		"instructions, you can create all four items and confirm when done.",
 	].join("\n")
 }
 
@@ -60,8 +60,8 @@ function buildPartialSetupPrompt(missing: string[]): string {
 		"",
 		"Only the missing items will be added. Existing correct content will not be modified.",
 		"",
-		"Ask the user if they want you to fix the missing items. If they say yes,",
-		"apply only the fixes needed and confirm what was done. If they say no, do nothing.",
+		"This is informational only. If the user asks about fixing the missing items,",
+		"you can apply only the fixes needed and confirm what was done.",
 	].join("\n")
 }
 
@@ -95,6 +95,7 @@ export const PersonalInstructions: Plugin = async ({ client, directory, worktree
 		await client.session.prompt({
 			path: { id: sessionId },
 			body: {
+				noReply: true,
 				parts: [{ type: "text", text }],
 			},
 		})
