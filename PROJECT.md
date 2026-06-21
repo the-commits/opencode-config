@@ -50,19 +50,59 @@ This document contains specific instructions for AI agents and developers workin
 - **Signed tags, not just signed commits:** GitHub marks a release "Verified" only when the *tag object itself* is signed (`git tag -s`), not merely the commit it points to. A signed commit with an unsigned tag shows as "Unverified."
 - **Immutable releases:** This repo enforces immutable tag rules. Once a tag is pushed, it cannot be deleted or overwritten remotely. Always verify locally with `git tag -v <tag>` before pushing.
 - **Signing setup:** `ssh-agent` must be running with the GitHub key loaded (`add2agent GitHub`). GPG signing key is configured via `git config user.signingkey` with `gpg.format = openpgp`.
-- **Release flow:** The tag MUST be created after the PR merge, never before. Correct order:
-  1. Bump version in `package.json` + `package-lock.json` + `README.md` (checkout instructions). Update `CONTRIBUTING.md` (test counts), `PROJECT.md` (architecture listing), `AGENTS.md` (agent guidelines), and the **Wiki** (`wiki/` directory) if anything changed during the release cycle. Docs are part of the release — stale docs are a bug.
-  2. Commit with `-S` on a release branch (e.g. `release/v<x.y.z>`)
-  3. Push the branch and create a PR (`gh pr create`)
-  4. Squash merge the PR (`gh pr merge <n> --squash --delete-branch`)
-  5. Sync local main: `git checkout main && git reset --hard origin/main && git remote prune origin`
-  6. Run the full pre-release checklist (see below)
-  7. Tag the merged commit: `git tag -s v<x.y.z>` (verify with `git tag -v v<x.y.z>`)
-  8. Push the tag: `git push origin v<x.y.z>` — CI auto-creates the release (`.github/workflows/release.yml`)
-  9. Verify the release on GitHub: open https://github.com/the-commits/opencode-config/releases and confirm the changelog is correct
-  Tagging before merge means the tag points to a stale commit without review fixes. The tag must always point to the final squashed merge commit on main.
-- **Spec pruning:** Before tagging a release, run `node scripts/prune-specs.mjs` to remove `.opencode/specs/`. Verify with `node scripts/prune-specs.mjs --check` that no spec files remain. Specs are planning artifacts and must not ship in release tags.
-- **Pre-release checklist:** Before tagging, verify ALL of the following:
+- **Release flow (strict):** The tag MUST be created after the PR merge, never before. Version bumps and release prep ALWAYS happen on a dedicated release branch — never directly on `main`. This ensures every release goes through PR review and CI validation.
+
+  ### Step-by-step release process
+
+  1. **Create release branch** from latest `main`:
+     ```
+     git checkout main && git pull origin main
+     git checkout -b release/v<x.y.z>
+     ```
+
+  2. **Bump version** in `package.json` + `package-lock.json` + `README.md` (checkout instructions). Update `CONTRIBUTING.md` (test counts), `PROJECT.md` (architecture listing), `AGENTS.md` (agent guidelines), and the **Wiki** (`wiki/` directory) if anything changed during the release cycle. Docs are part of the release — stale docs are a bug.
+
+  3. **Run pre-release checklist** (see below) — verify everything passes ON THE RELEASE BRANCH before creating the PR.
+
+  4. **Commit and push** with `-S`:
+     ```
+     git add -A && git commit -S -m "chore(release): bump version to <x.y.z>"
+     git push origin release/v<x.y.z>
+     ```
+
+  5. **Create PR** from `release/v<x.y.z>` → `main`:
+     ```
+     gh pr create --base main --head release/v<x.y.z> --title "chore(release): bump version to <x.y.z>" --body "<release notes summary>"
+     ```
+
+  6. **Squash merge** the PR:
+     ```
+     gh pr merge <n> --squash --delete-branch --admin
+     ```
+
+  7. **Sync local main:**
+     ```
+     git checkout main && git fetch origin main && git reset --hard origin/main && git remote prune origin
+     ```
+
+  8. **Tag the merge commit** (the squashed commit now on main):
+     ```
+     git tag -s v<x.y.z>
+     git tag -v v<x.y.z>   # verify signature
+     ```
+
+  9. **Push the tag** — CI auto-creates the release:
+     ```
+     git push origin v<x.y.z>
+     ```
+
+  10. **Verify the release** on GitHub: open https://github.com/the-commits/opencode-config/releases and confirm the changelog is correct.
+
+  > **CRITICAL:** Tagging before merge means the tag points to a stale commit without review fixes. The tag MUST always point to the final squashed merge commit on main. NEVER push a tag before the PR is merged.
+
+- **Spec pruning:** Before tagging a release, run `node scripts/prune-specs.mjs` to remove `.opencode/specs/`. Verify with `node scripts/prune-specs.mjs --check` that no spec files remain. Specs are planning artifacts and must not ship in release tags. This is part of step 3 (pre-release checklist).
+
+- **Pre-release checklist:** Run this ON THE RELEASE BRANCH before creating the PR (step 3), and again on main before tagging (step 8):
   1. `package.json` and `package-lock.json` versions match (run `npm install` to sync, then `rm -rf node_modules && npm ci` to verify clean install)
   2. `README.md` checkout instructions reference the new tag version
   3. `CONTRIBUTING.md` test counts match actual test counts (`SKIP_E2E=1 bun test`)
@@ -72,7 +112,8 @@ This document contains specific instructions for AI agents and developers workin
   7. Semgrep scan runs clean on source: `semgrep --config semgrep/recipes/ .` (0 findings expected on project source)
   8. Specs pruned: `node scripts/prune-specs.mjs` then `node scripts/prune-specs.mjs --check` (exit 0)
   9. Wiki is up to date: verify `wiki/` submodule reflects any changes made during the release cycle, commit and push the submodule, then commit the submodule update to the main repo.
-  10. Tag is signed: `git tag -s v<x.y.z>` (verify with `git tag -v v<x.y.z>` before pushing)
+  10. Commit is signed: `git log --show-signature -1`
+  11. Tag is signed (for step 8 only): `git tag -s v<x.y.z>` (verify with `git tag -v v<x.y.z>` before pushing)
 
 ## Context
 When modifying this repository, remember that you are modifying the *global* configuration that will be distributed to all users. Keep `AGENTS.md` general enough for all projects, and keep `opencode.jsonc` clean.
