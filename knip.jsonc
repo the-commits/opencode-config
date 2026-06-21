@@ -1,0 +1,19 @@
+{
+	"$schema": "https://unpkg.com/knip@latest/schema.json",
+	"entry": [
+		"plugins/**/*.ts",
+		"tools/**/*.ts",
+		"lib/**/*.ts"
+	],
+	"project": [
+		"plugins/**/*.ts",
+		"tools/**/*.ts",
+		"lib/**/*.ts",
+		"tests/**/*.ts"
+	],
+	"ignoreBinaries": [
+		"which",
+		"python3",
+		"go"
+	]
+}

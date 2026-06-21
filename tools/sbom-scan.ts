@@ -87,7 +87,7 @@ export default tool({
 
 				lines.push("");
 				lines.push("Setup complete. Results will appear under **Security > Code scanning**.");
-			} catch {
+			} catch (err) {
 				lines.push(
 					"Automated commit/push failed: " +
 					(err instanceof Error ? err.message : String(err)),

@@ -209,10 +209,15 @@ Configured in `opencode.jsonc` to use `gemini-2.5-flash` as the search model. Th
 
 ### Pre-Push Secret Scanning
 
-`.husky/pre-push` -- A git hook that scans your tracked files for leaked secrets before you push. Two-pass approach using ripgrep:
+`.husky/pre-push` -- A git hook that runs before every push. Five-stage pipeline:
 
-1. **Keyword-context scan** -- catches `api_key = "..."`, `password: "..."`, and similar assignment patterns
-2. **Prefix-based scan** -- catches secrets by their distinctive format (AWS `AKIA*`, GitHub `ghp_*`, Stripe `sk_live_*`, private key headers, JWTs, and 40+ other provider prefixes)
+1. **Type check** (`tsc --noEmit`) -- catches unused variables, unused parameters, unreachable code, and type errors
+2. **Dead code detection** (`knip`) -- catches unused exports, unused files, unused dependencies, and unused types across the whole project
+3. **Unit tests** (`bun test`) -- fast, ~1s, no external dependencies
+4. **E2E integration tests** -- real Semgrep scans against real packages (~50s, skip with `SKIP_E2E=1 git push`)
+5. **Secret scanning** -- two-pass ripgrep scan on all git-tracked files:
+   - **Keyword-context scan** -- catches `api_key = "..."`, `password: "..."`, and similar assignment patterns
+   - **Prefix-based scan** -- catches secrets by their distinctive format (AWS `AKIA*`, GitHub `ghp_*`, Stripe `sk_live_*`, private key headers, JWTs, and 40+ other provider prefixes)
 
 The prefix patterns live in `secrets/secret-patterns.txt` (72 patterns covering AWS, GCP, OpenAI, Anthropic, Stripe, GitHub, GitLab, Slack, SendGrid, npm, PyPI, Hugging Face, Fly.io, Vault, 1Password, and more). See [Third-party attribution](#third-party-attribution) for sources.
 
@@ -220,6 +225,39 @@ The prefix patterns live in `secrets/secret-patterns.txt` (72 patterns covering 
 - Reports `file:line:column` for each match
 - All output to stderr so it doesn't interfere with the OpenCode TUI
 - Bypass with `git push --no-verify` if you're sure of yourself
+
+### NPM Hardening
+
+This config follows the [OWASP NPM Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/NPM_Security_Cheat_Sheet.html) to protect against supply chain attacks:
+
+**Project-level (`.npmrc`):**
+- `ignore-scripts=true` -- disables lifecycle scripts (`postinstall`, `prepare`, etc.) from all dependencies, preventing arbitrary command execution from malicious packages
+- `save-exact=true` -- pins exact versions when adding new dependencies (no `^` or `~` ranges)
+
+**Pinned dependencies:**
+All versions in `package.json` are pinned to exact versions (e.g. `"1.17.8"`, not `"^1.17.8"`). Combined with `npm ci` enforcement, this ensures deterministic installs and prevents pulling in compromised newly-published versions.
+
+**Integrity verification:**
+`scripts/verify-deps.mjs` checks that:
+1. All dependencies in `package.json` are pinned (no `^` or `~` ranges)
+2. All packages in `package-lock.json` have SHA-512 integrity hashes
+3. `package.json` and `package-lock.json` versions match
+
+Run it manually:
+```bash
+node scripts/verify-deps.mjs
+```
+
+**Global npm hardening (recommended for all projects):**
+```bash
+npm config set ignore-scripts true --global
+npm config set save-exact true --global
+```
+
+This applies the same protections to every npm project on your machine, not just this config.
+
+**Delay before upgrading:**
+Allow new package versions some time to circulate before upgrading. Review changelogs and release notes. Don't rush to the latest version -- a compromised package may be published and pulled within hours.
 
 ### Agent Guidelines
 
@@ -240,6 +278,7 @@ When you open OpenCode inside any code project, these things kick in automatical
 - **Successful Editing** verifies edits via LSP before the agent moves on
 - **PHP Tooling** auto-provisions Xdebug MCP if the project is PHP (creates or suggests adding to the project's `opencode.jsonc`)
 - **Personal Instructions** detects whether per-developer personal instructions are set up and prompts to create `.opencode/personal/AGENTS.md` (gitignored, not shared with the team)
+- **NPM Hardening** enforces pinned dependencies, integrity hashes, and disabled lifecycle scripts via `.npmrc` and `scripts/verify-deps.mjs`
 - **Secret scanning** runs on every `git push` via the pre-push hook
 
 Project-specific configuration goes in the project's own `opencode.jsonc` (or `opencode.json`). The PHP Tooling plugin creates this automatically for PHP projects. The Personal Instructions plugin prompts you to set up a gitignored `.opencode/personal/AGENTS.md` for per-developer overrides. For other project-specific MCP servers or overrides, create this file yourself at the project root.
@@ -265,10 +304,13 @@ git clone https://github.com/<you>/opencode-config.git ~/.config/opencode
 cd ~/.config/opencode
 
 # Check out the latest release
-git checkout v3.1.0
+git checkout v3.2.0
 
-# Install dependencies
+# Install dependencies (ignore-scripts=true in .npmrc blocks lifecycle scripts)
 npm install
+
+# Set up git hooks manually (prepare script is disabled by ignore-scripts)
+npx husky
 ```
 
 #### Updating
@@ -278,8 +320,9 @@ Pull new releases from upstream and check out the tag:
 ```bash
 cd ~/.config/opencode
 git fetch --tags
-git checkout v3.1.0
+git checkout v3.2.0
 npm install
+npx husky
 ```
 
 > **Note for forks:** GitHub's "Sync fork" button only syncs branches, not tags. You need to fetch tags from upstream manually:

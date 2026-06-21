@@ -15,7 +15,8 @@
 import fs from "node:fs"
 import path from "node:path"
 
-const SPECS_DIR = ".opencode/specs"
+const root = path.resolve(import.meta.dirname, "..")
+const SPECS_DIR = path.join(root, ".opencode", "specs")
 const isCheckMode = process.argv[2] === "--check"
 
 function hasSpecFiles(dir) {
