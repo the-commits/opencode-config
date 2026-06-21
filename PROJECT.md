@@ -36,7 +36,7 @@ This document contains specific instructions for AI agents and developers workin
 - **Lock file sync**: When updating `package.json` (version, dependencies, or overrides), ALWAYS run `npm install` to regenerate `package-lock.json`, then verify with `npm ci` from a clean state (`rm -rf node_modules && npm ci`) that everything is synced and installable. A stale lock file will break `npm ci` for users.
 - **Testing**: Use `bun test` for unit tests. Run E2E tests with `bun test tests/supply-chain-guard/e2e.test.ts`. Tests must pass before committing (enforced by the pre-push hook). CI workflows cannot be validated locally (token scope limitation); push as a PR and let CI run.
 - **Documentation**: When adding or changing a feature, ALWAYS update `README.md` (user-facing docs), `PROJECT.md` (architecture listing), `CONTRIBUTING.md` (test counts, dev setup), and `AGENTS.md` (agent guidelines) as needed. Docs are part of the release — stale docs are a bug.
-- **Releases**: Use `gh release create` for new releases. Ensure the tag is signed before pushing.
+- **Releases**: CI auto-creates releases when a signed tag is pushed (`.github/workflows/release.yml` generates a changelog and calls `gh release create`). Ensure the tag is signed before pushing.
 - **Supply Chain Guard**: If adding a new ecosystem, update `plugins/supply-chain-guard/ecosystems.ts`, add the corresponding semgrep recipes in `semgrep/recipes/`, and update the `README.md`. Supported ecosystems: npm/yarn/pnpm/bun, composer, dotnet/nuget, bundler/gem, maven/gradle, pip/poetry/pipenv/uv, cargo, go modules.
 - **Secret Patterns**: When adding to `secrets/secret-patterns.txt`, ensure patterns are prefix-based to work efficiently with `ripgrep` in the `.husky/pre-push` hook. Run `scripts/fetch-gitleaks-config.sh` to refresh the reference gitleaks config.
 - **OpenCode tools**: Do **not** add `zod` as an external dependency. Use `tool.schema` provided natively by `@opencode-ai/plugin` instead.
@@ -57,8 +57,8 @@ This document contains specific instructions for AI agents and developers workin
   5. Sync local main: `git checkout main && git reset --hard origin/main && git remote prune origin`
   6. Run the full pre-release checklist (see below)
   7. Tag the merged commit: `git tag -s v<x.y.z>` (verify with `git tag -v v<x.y.z>`)
-  8. Push the tag: `git push origin v<x.y.z>`
-  9. Create the release: `gh release create v<x.y.z>`
+  8. Push the tag: `git push origin v<x.y.z>` — CI auto-creates the release (`.github/workflows/release.yml`)
+  9. Verify the release on GitHub: open https://github.com/the-commits/opencode-config/releases and confirm the changelog is correct
   Tagging before merge means the tag points to a stale commit without review fixes. The tag must always point to the final squashed merge commit on main.
 - **Spec pruning:** Before tagging a release, run `node scripts/prune-specs.mjs` to remove `.opencode/specs/`. Verify with `node scripts/prune-specs.mjs --check` that no spec files remain. Specs are planning artifacts and must not ship in release tags.
 - **Pre-release checklist:** Before tagging, verify ALL of the following:
