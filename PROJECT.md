@@ -9,7 +9,7 @@ This document contains specific instructions for AI agents and developers workin
 - `tools/` - Custom tools: feature-planning, math, sbom-scan, vulnerability-handling.
 - `commands/` - Custom slash commands: `/feature`, `/vuln`.
 - `lib/` - Shared utilities (resolve-config-dir, sbom-scan, text-to-number, php-tooling-internals).
-- `prompts/` - Agent mode prompts (analysis.txt, brainstorm.txt, build-meticulous.txt).
+- `prompts/` - Agent mode prompts (analysis.txt, brainstorm.txt, build-meticulous.txt, scout.txt).
 - `.husky/pre-push` - Pre-push hook: unit tests, E2E tests, secret scanning.
 - `.opencode/opencode.jsonc` - Project-level opencode config (overrides global defaults).
 - `.trivyignore` - Accepted Trivy vulnerability exceptions with re-evaluation dates.
@@ -32,6 +32,12 @@ This document contains specific instructions for AI agents and developers workin
 - **Secret Patterns**: When adding to `secrets/secret-patterns.txt`, ensure patterns are prefix-based to work efficiently with `ripgrep` in the `.husky/pre-push` hook. Run `scripts/fetch-gitleaks-config.sh` to refresh the reference gitleaks config.
 - **OpenCode tools**: Do **not** add `zod` as an external dependency. Use `tool.schema` provided natively by `@opencode-ai/plugin` instead.
 - **CI**: Prefer PR-based workflows. The GitHub token lacks `workflow` scope, so direct pushes modifying `.github/workflows/` are rejected. Create a branch and PR instead.
+
+## Release Integrity
+- **Signed tags, not just signed commits:** GitHub marks a release "Verified" only when the *tag object itself* is signed (`git tag -s`), not merely the commit it points to. A signed commit with an unsigned tag shows as "Unverified."
+- **Immutable releases:** This repo enforces immutable tag rules. Once a tag is pushed, it cannot be deleted or overwritten remotely. Always verify locally with `git tag -v <tag>` before pushing.
+- **Signing setup:** `ssh-agent` must be running with the GitHub key loaded (`add2agent GitHub`). GPG signing key is configured via `git config user.signingkey` with `gpg.format = openpgp`.
+- **Release flow:** Bump version in `package.json` + `README.md` → commit with `-S` → `git tag -s v<x.y.z>` → push branch → push tag → `gh release create`.
 
 ## Context
 When modifying this repository, remember that you are modifying the *global* configuration that will be distributed to all users. Keep `AGENTS.md` general enough for all projects, and keep `opencode.jsonc` clean.

@@ -119,16 +119,16 @@ Six modes configured in `opencode.jsonc`, each with temperature tuning and permi
 
 | Mode | Model | Temperature | Write access | Prompt |
 |---|---|---|---|---|
-| `scout` | `big-pickle` | 0.0 | Full | Default |
+| `scout` | `big-pickle` | 0.1 | Read-only (bash allowed) | `prompts/scout.txt` |
 | `brainstorm` | `gemini-3.1-pro-preview` | 0.5 | Read-only | `prompts/brainstorm.txt` |
 | `plan` | `gemini-3.1-pro-preview` | 0.1 | Read-only | Default |
 | `analyze` | `gemini-3.1-pro-preview` | 0.1 | Read-only | `prompts/analysis.txt` |
 | `build` | `gemini-3.5-flash` | 0.0 | Full | Default |
 | `build-meticulous` | `glm-5.2` | 0.0 | Full | `prompts/build-meticulous.txt` |
 
-All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field -- read-only modes deny `bash`, `edit`, and `write`.
+All modes have access to all MCP tools (Semgrep, Chrome DevTools, `websearch_cited`). Write access is controlled via the `permission` field -- read-only modes deny `edit` and `write`. `scout` allows `bash` for man pages and read-only commands but denies file modification.
 
-`scout` is the default mode — a lightweight web search and research mode using `opencode/big-pickle` with `websearch_cited` and Chrome DevTools for fetching and browsing information.
+`scout` is the default mode — a lightweight research and exploration agent using `opencode/big-pickle` with `websearch_cited` and Chrome DevTools for fetching and browsing information. It runs at temperature 0.1 with `top_k: 30` for focused, factual outputs, and is capped at 10 agentic steps to keep sessions short. It never edits or writes files.
 
 `build-meticulous` is a structured build mode with a five-phase workflow (understand, design, decompose, implement, verify) that enforces TDD and ruthless self-review.
 
