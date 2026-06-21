@@ -7,6 +7,7 @@ This document contains specific instructions for AI agents and developers workin
 - `plugins/personal-instructions.ts` - Startup plugin that detects and prompts for per-developer personal instructions setup (`.opencode/personal/AGENTS.md`).
 - `semgrep/recipes/` - Custom Semgrep YAML rules for npm, PyPI, RubyGems, Composer, Maven/Gradle, NuGet, Cargo, Go, C/C++, C#, Java, PHP, Python, Ruby, Rust, JS/TS.
 - `secrets/secret-patterns.txt` - Curated prefix-based regex patterns for the pre-push secret scanner.
+- `wiki/` - Source files for the GitHub Wiki (deep documentation on all components). Pushed to the `*.wiki.git` repo.
 - `tools/` - Custom tools: feature-planning, math, sbom-scan, vulnerability-handling.
 - `commands/` - Custom slash commands: `/feature`, `/vuln`.
 - `lib/` - Shared utilities (resolve-config-dir, sbom-scan, text-to-number, php-tooling-internals, personal-instructions-internals).
@@ -35,7 +36,7 @@ This document contains specific instructions for AI agents and developers workin
 - **SemVer**: We strictly follow [Semantic Versioning](https://semver.org/). On every release/push that warrants a new tag, you MUST ensure that `package.json`, `package-lock.json`, `README.md` (e.g. checkout instructions), and any other files referencing the git tag version are updated accordingly.
 - **Lock file sync**: When updating `package.json` (version, dependencies, or overrides), ALWAYS run `npm install` to regenerate `package-lock.json`, then verify with `npm ci` from a clean state (`rm -rf node_modules && npm ci`) that everything is synced and installable. A stale lock file will break `npm ci` for users.
 - **Testing**: Use `bun test` for unit tests. Run E2E tests with `bun test tests/supply-chain-guard/e2e.test.ts`. Tests must pass before committing (enforced by the pre-push hook). CI workflows cannot be validated locally (token scope limitation); push as a PR and let CI run.
-- **Documentation**: When adding or changing a feature, ALWAYS update `README.md` (user-facing docs), `PROJECT.md` (architecture listing), `CONTRIBUTING.md` (test counts, dev setup), and `AGENTS.md` (agent guidelines) as needed. Docs are part of the release — stale docs are a bug.
+- **Documentation**: When adding or changing a feature, ALWAYS update `README.md` (user-facing docs), `PROJECT.md` (architecture listing), `CONTRIBUTING.md` (test counts, dev setup), `AGENTS.md` (agent guidelines), and the **Wiki** (`wiki/` directory, pushed to `*.wiki.git`) as needed. Docs are part of the release — stale docs are a bug.
 - **Releases**: CI auto-creates releases when a signed tag is pushed (`.github/workflows/release.yml` generates a changelog and calls `gh release create`). Ensure the tag is signed before pushing.
 - **Supply Chain Guard**: If adding a new ecosystem, update `plugins/supply-chain-guard/ecosystems.ts`, add the corresponding semgrep recipes in `semgrep/recipes/`, and update the `README.md`. Supported ecosystems: npm/yarn/pnpm/bun, composer, dotnet/nuget, bundler/gem, maven/gradle, pip/poetry/pipenv/uv, cargo, go modules.
 - **Secret Patterns**: When adding to `secrets/secret-patterns.txt`, ensure patterns are prefix-based to work efficiently with `ripgrep` in the `.husky/pre-push` hook. Run `scripts/fetch-gitleaks-config.sh` to refresh the reference gitleaks config.
@@ -50,7 +51,7 @@ This document contains specific instructions for AI agents and developers workin
 - **Immutable releases:** This repo enforces immutable tag rules. Once a tag is pushed, it cannot be deleted or overwritten remotely. Always verify locally with `git tag -v <tag>` before pushing.
 - **Signing setup:** `ssh-agent` must be running with the GitHub key loaded (`add2agent GitHub`). GPG signing key is configured via `git config user.signingkey` with `gpg.format = openpgp`.
 - **Release flow:** The tag MUST be created after the PR merge, never before. Correct order:
-  1. Bump version in `package.json` + `package-lock.json` + `README.md` (checkout instructions). Update `CONTRIBUTING.md` (test counts), `PROJECT.md` (architecture listing), and `AGENTS.md` (agent guidelines) if anything changed during the release cycle. Docs are part of the release — stale docs are a bug.
+  1. Bump version in `package.json` + `package-lock.json` + `README.md` (checkout instructions). Update `CONTRIBUTING.md` (test counts), `PROJECT.md` (architecture listing), `AGENTS.md` (agent guidelines), and the **Wiki** (`wiki/` directory) if anything changed during the release cycle. Docs are part of the release — stale docs are a bug.
   2. Commit with `-S` on a release branch (e.g. `release/v<x.y.z>`)
   3. Push the branch and create a PR (`gh pr create`)
   4. Squash merge the PR (`gh pr merge <n> --squash --delete-branch`)
@@ -70,7 +71,8 @@ This document contains specific instructions for AI agents and developers workin
   6. All tests pass: `SKIP_E2E=1 bun test` (unit) and `bun test tests/supply-chain-guard/e2e.test.ts` (E2E)
   7. Semgrep scan runs clean on source: `semgrep --config semgrep/recipes/ .` (0 findings expected on project source)
   8. Specs pruned: `node scripts/prune-specs.mjs` then `node scripts/prune-specs.mjs --check` (exit 0)
-  9. Tag is signed: `git tag -s v<x.y.z>` (verify with `git tag -v v<x.y.z>` before pushing)
+  9. Wiki is up to date: verify `wiki/` directory reflects any changes made during the release cycle, then push to wiki repo
+  10. Tag is signed: `git tag -s v<x.y.z>` (verify with `git tag -v v<x.y.z>` before pushing)
 
 ## Context
 When modifying this repository, remember that you are modifying the *global* configuration that will be distributed to all users. Keep `AGENTS.md` general enough for all projects, and keep `opencode.jsonc` clean.
