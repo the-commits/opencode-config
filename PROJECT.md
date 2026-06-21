@@ -7,7 +7,7 @@ This document contains specific instructions for AI agents and developers workin
 - `plugins/personal-instructions.ts` - Startup plugin that detects and prompts for per-developer personal instructions setup (`.opencode/personal/AGENTS.md`).
 - `semgrep/recipes/` - Custom Semgrep YAML rules for npm, PyPI, RubyGems, Composer, Maven/Gradle, NuGet, Cargo, Go, C/C++, C#, Java, PHP, Python, Ruby, Rust, JS/TS.
 - `secrets/secret-patterns.txt` - Curated prefix-based regex patterns for the pre-push secret scanner.
-- `wiki/` - Source files for the GitHub Wiki (deep documentation on all components). Pushed to the `*.wiki.git` repo.
+- `wiki/` - Git submodule for the GitHub Wiki (`git@github.com:the-commits/opencode-config.wiki.git`). Contains deep documentation on all components.
 - `tools/` - Custom tools: feature-planning, math, sbom-scan, vulnerability-handling.
 - `commands/` - Custom slash commands: `/feature`, `/vuln`.
 - `lib/` - Shared utilities (resolve-config-dir, sbom-scan, text-to-number, php-tooling-internals, personal-instructions-internals).
@@ -71,7 +71,7 @@ This document contains specific instructions for AI agents and developers workin
   6. All tests pass: `SKIP_E2E=1 bun test` (unit) and `bun test tests/supply-chain-guard/e2e.test.ts` (E2E)
   7. Semgrep scan runs clean on source: `semgrep --config semgrep/recipes/ .` (0 findings expected on project source)
   8. Specs pruned: `node scripts/prune-specs.mjs` then `node scripts/prune-specs.mjs --check` (exit 0)
-  9. Wiki is up to date: verify `wiki/` directory reflects any changes made during the release cycle, then push to wiki repo
+  9. Wiki is up to date: verify `wiki/` submodule reflects any changes made during the release cycle, commit and push the submodule, then commit the submodule update to the main repo.
   10. Tag is signed: `git tag -s v<x.y.z>` (verify with `git tag -v v<x.y.z>` before pushing)
 
 ## Context
