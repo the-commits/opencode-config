@@ -68,7 +68,7 @@ Throw descriptive errors that explain what went wrong and why. Include relevant 
 
 ### Comments
 
-Avoid unnecessary comments. Code should be self-documenting with clear naming. Use comments only for complex logic, non-obvious decisions, or workarounds. Never leave commented-out code.
+Comments are a sign of bad naming. If you feel the need to explain what code does, rename variables, functions, and types until the code explains itself. Only add a comment when naming alone cannot convey the intent — complex logic, non-obvious decisions, or workarounds. Never leave commented-out code.
 
 ### Naming
 
