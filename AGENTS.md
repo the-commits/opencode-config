@@ -2,6 +2,8 @@
 
 This document provides system-wide guidelines for agentic coding agents.
 
+> **Personal instructions:** Per-developer overrides can be placed in `.opencode/personal/AGENTS.md` (gitignored, not shared with the team).
+
 ## Critical Rules
 
 - **Never modify this file.** This is a system-level configuration file. Project-specific guidelines should be documented in project AGENTS.md files within individual repositories.
