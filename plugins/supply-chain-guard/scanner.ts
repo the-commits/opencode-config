@@ -26,7 +26,7 @@ interface RunScanPassesInput {
   recipesDir: string
   ecoName: string
   shell: ShellExecutor
-  log: (level: string, message: string) => Promise<void>
+  log: (level: "debug" | "info" | "warn" | "error", message: string) => Promise<void>
 }
 
 const MAX_ERROR_LENGTH = 500

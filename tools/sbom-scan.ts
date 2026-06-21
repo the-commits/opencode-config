@@ -78,7 +78,7 @@ export default tool({
 						{ cwd: directory, stdio: "pipe" },
 					);
 					lines.push("Triggered first workflow run.");
-				} catch {
+			} catch (err) {
 					lines.push(
 						"Could not trigger workflow run automatically. " +
 						"The workflow will run on the next push or PR.",
@@ -87,7 +87,7 @@ export default tool({
 
 				lines.push("");
 				lines.push("Setup complete. Results will appear under **Security > Code scanning**.");
-			} catch {
+			} catch (err) {
 				lines.push(
 					"Automated commit/push failed: " +
 					(err instanceof Error ? err.message : String(err)),

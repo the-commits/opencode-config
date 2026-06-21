@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "bun:test"
 import fs from "node:fs"
 import os from "node:os"
 import path from "node:path"
-import { runScanPasses, type ScanResult, type ShellExecutor } from "../../plugins/supply-chain-guard/scanner.ts"
+import { runScanPasses, type ShellExecutor } from "../../plugins/supply-chain-guard/scanner.ts"
 import type { ScanPass } from "../../plugins/supply-chain-guard/ecosystems.ts"
 
 let tmpDir: string

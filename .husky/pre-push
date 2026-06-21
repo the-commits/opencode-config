@@ -18,6 +18,43 @@ set +e
 HOOK_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG_DIR="$(dirname "$HOOK_DIR")"
 PATTERN_FILE="${CONFIG_DIR}/secrets/secret-patterns.txt"
+
+# --- Type check (tsc --noEmit) ---
+# Catches unused variables, unused parameters, unreachable code, type errors.
+# Failure blocks push.
+if command -v npx >/dev/null 2>&1; then
+  echo "Running type check (tsc --noEmit)..." >&2
+  (cd "${CONFIG_DIR}" && npx tsc --noEmit) 2>&1 | sed 's/^/  /' >&2
+  if [ "${PIPESTATUS[0]:-$?}" -ne 0 ]; then
+    echo "BLOCKED: Type check failed." >&2
+    exit 1
+  fi
+fi
+
+# --- Dead code detection (knip) ---
+# Catches unused exports, unused files, unused dependencies, unused types.
+# Failure blocks push.
+if command -v npx >/dev/null 2>&1; then
+  echo "Running dead code detection (knip)..." >&2
+  (cd "${CONFIG_DIR}" && npx knip) 2>&1 | sed 's/^/  /' >&2
+  if [ "${PIPESTATUS[0]:-$?}" -ne 0 ]; then
+    echo "BLOCKED: Dead code detected." >&2
+    exit 1
+  fi
+fi
+
+# --- Dependency verification (OWASP NPM Security) ---
+# Checks pinned versions, integrity hashes, and lock file sync.
+# Failure blocks push.
+if command -v node >/dev/null 2>&1; then
+  echo "Running dependency verification..." >&2
+  (cd "${CONFIG_DIR}" && node scripts/verify-deps.mjs --quiet) 2>&1 | sed 's/^/  /' >&2
+  if [ "${PIPESTATUS[0]:-$?}" -ne 0 ]; then
+    echo "BLOCKED: Dependency verification failed." >&2
+    exit 1
+  fi
+fi
+
 # --- Unit tests ---
 # Run unit tests (fast, ~100ms). Failure blocks push.
 if command -v bun >/dev/null 2>&1; then

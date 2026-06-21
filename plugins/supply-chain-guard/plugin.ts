@@ -29,7 +29,7 @@ export const SupplyChainGuard = async (
   const cacheFile = cacheFilePath ?? path.join(configDir, ".supply-chain-guard-cache.json")
   const pendingCalls = new Map<string, PendingCall>()
 
-  const log = async (level: string, message: string) => {
+  const log = async (level: "debug" | "info" | "warn" | "error", message: string) => {
     try {
       await ctx.client.app.log({
         body: { service: "supply-chain-guard", level, message },

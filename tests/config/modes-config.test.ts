@@ -15,7 +15,7 @@ describe("mode config", () => {
   const configPath = path.join(process.cwd(), "opencode.jsonc")
   const raw = fs.readFileSync(configPath, "utf8")
 
-  it.each(MODES)("%s mode has a valid model in provider/name format", (mode) => {
+  it.each(MODES.map((m) => [m]))("%s mode has a valid model in provider/name format", (mode) => {
     const model = extractModel(raw, mode)
 
     expect(model).toBeDefined()

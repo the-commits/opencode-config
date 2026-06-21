@@ -1,7 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import {
-  detectInstalls,
-  type DetectedInstall,
+	detectInstalls,
 } from "../../plugins/supply-chain-guard/detection.ts"
 
 // ---------------------------------------------------------------------------
