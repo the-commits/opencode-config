@@ -52,7 +52,7 @@ export function findProjectConfig(directory: string): string | null {
 export function hasXdebugMcp(configPath: string): boolean | null {
 	try {
 		const raw = fs.readFileSync(configPath, "utf-8")
-		const stripped = raw.replace(/^\s*\/\/.*$/gm, "")
+		const stripped = raw.replace(/^\s*\/\/.*$/gm, "").replace(/,(\s*[}\]])/g, "$1")
 		const config = JSON.parse(stripped)
 		return !!config.mcp?.xdebug
 	} catch {
@@ -82,7 +82,7 @@ export function createConfigWithXdebug(directory: string): string {
 export function addXdebugToConfig(configPath: string): boolean {
 	try {
 		const raw = fs.readFileSync(configPath, "utf-8")
-		const stripped = raw.replace(/^\s*\/\/.*$/gm, "")
+		const stripped = raw.replace(/^\s*\/\/.*$/gm, "").replace(/,(\s*[}\]])/g, "$1")
 		const config = JSON.parse(stripped)
 
 		if (!config.mcp) config.mcp = {}
