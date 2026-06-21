@@ -10,7 +10,7 @@ This document contains specific instructions for AI agents and developers workin
 - `tools/` - Custom tools: feature-planning, math, sbom-scan, vulnerability-handling.
 - `commands/` - Custom slash commands: `/feature`, `/vuln`.
 - `lib/` - Shared utilities (resolve-config-dir, sbom-scan, text-to-number, php-tooling-internals, personal-instructions-internals).
-- `prompts/` - Agent mode prompts (analysis.txt, brainstorm.txt, build-meticulous.txt, scout.txt).
+- `prompts/` - Agent mode prompts (analysis.txt, brainstorm.txt, build.txt, build-lite.txt, build-meticulous.txt, scout.txt).
 - `.husky/pre-push` - Pre-push hook: type check (tsc), dead code detection (knip), dependency verification (verify-deps.mjs), unit tests, E2E tests, secret scanning.
 - `tsconfig.json` - TypeScript config with `noUnusedLocals`, `noUnusedParameters`, `allowUnreachableCode: false` for dead code prevention.
 - `knip.jsonc` - Knip config for cross-file dead code detection (unused exports, files, dependencies, types).
@@ -40,6 +40,7 @@ This document contains specific instructions for AI agents and developers workin
 - **Supply Chain Guard**: If adding a new ecosystem, update `plugins/supply-chain-guard/ecosystems.ts`, add the corresponding semgrep recipes in `semgrep/recipes/`, and update the `README.md`. Supported ecosystems: npm/yarn/pnpm/bun, composer, dotnet/nuget, bundler/gem, maven/gradle, pip/poetry/pipenv/uv, cargo, go modules.
 - **Secret Patterns**: When adding to `secrets/secret-patterns.txt`, ensure patterns are prefix-based to work efficiently with `ripgrep` in the `.husky/pre-push` hook. Run `scripts/fetch-gitleaks-config.sh` to refresh the reference gitleaks config.
 - **OpenCode tools**: Do **not** add `zod` as an external dependency. Use `tool.schema` provided natively by `@opencode-ai/plugin` instead.
+- **Config file**: This project uses `opencode.jsonc` ONLY. Never create or use `opencode.json`. If an external installer (e.g. codebase-memory-mcp) creates `opencode.json`, merge its contents into `opencode.jsonc` and delete `opencode.json` immediately.
 - **NPM Security**: Follow the [OWASP NPM Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/NPM_Security_Cheat_Sheet.html). All dependencies MUST be pinned to exact versions (no `^` or `~` ranges). `.npmrc` enforces `ignore-scripts=true` (blocks malicious lifecycle scripts) and `save-exact=true` (pins new installs). `scripts/verify-deps.mjs` checks pinning, integrity hashes, and lock file sync in the pre-push hook. When adding a new dependency, allow new package versions some time to circulate before upgrading — don't rush to the latest version. Run `npx husky` manually after `npm install` since `ignore-scripts=true` disables the `prepare` script.
 - **CI**: Prefer PR-based workflows. The GitHub token lacks `workflow` scope, so direct pushes modifying `.github/workflows/` are rejected. Create a branch and PR instead.
 - **PR merges**: ALWAYS squash merge PRs (`gh pr merge <n> --squash --delete-branch`). This keeps the commit history clean with one commit per PR. After merging, sync locally: `git checkout main && git pull origin main && git remote prune origin`. Delete the local branch: `git branch -d <branch-name>`.

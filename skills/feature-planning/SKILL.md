@@ -3,8 +3,8 @@ name: feature-planning
 description: >-
   Guide users through writing agile features including user stories,
   acceptance criteria, story splitting, estimation, and definition of done.
-  After estimation, recommends the appropriate implementation mode (build
-  or build-meticulous) based on story sizes. Use when the user asks to plan
+  After estimation, recommends the appropriate implementation mode (build-lite,
+  build, or build-meticulous) based on story sizes. Use when the user asks to plan
   a feature, write user stories, create acceptance criteria, define
   requirements, break down work, do sprint planning, agile planning, story
   mapping, backlog grooming, create product backlog items, or define
@@ -133,10 +133,15 @@ Provide a rough sense of effort for each story.
 
 Once every story has an estimate, evaluate the sizes:
 
-- **All stories are XS or S** → These stories are small enough for standard
-  **"build" mode**. The agent can implement each story directly without
-  requiring a deeper analysis phase. Tell the user: *"All stories are XS or S,
-  so a standard build is appropriate."*
+- **All stories are XS** → These stories are trivial and can be handled by a
+  fast, lightweight model. Recommend **"build-lite" mode**. Tell the user:
+  *"All stories are XS, so build-lite is appropriate — a fast model for
+  small tasks."*
+
+- **All stories are XS or S (with at least one S)** → These stories are small
+  enough for standard **"build" mode**. The agent can implement each story
+  directly without requiring a deeper analysis phase. Tell the user: *"All
+  stories are XS or S, so a standard build is appropriate."*
 
 - **Any story is M or larger** → These stories need deeper analysis before
   coding. Recommend **"build-meticulous" mode**, which enforces a rigorous
@@ -154,8 +159,17 @@ Once every story has an estimate, evaluate the sizes:
   mode, which will break them into smaller parts and verify each one
   thoroughly."*
 
-**Output:** A recommended implementation mode (build or build-meticulous) and,
-if applicable, a revised story breakdown with all stories at S or XS.
+### TDD Recommendation
+
+For S and M+ stories, recommend following **Test-Driven Development**
+(red-green-refactor): write failing tests first that define the expected
+behavior, then implement the minimum code to pass, then refactor while
+keeping tests green. XS stories handled by build-lite do not require TDD —
+if a task needs tests, it is not XS.
+
+**Output:** A recommended implementation mode (build-lite, build, or
+build-meticulous) with a TDD recommendation where applicable, and, if
+applicable, a revised story breakdown with all stories at S or XS.
 
 ---
 
@@ -166,6 +180,7 @@ Define what "done" means for this feature.
 **Typical DoD items:**
 - Code complete and reviewed
 - All acceptance criteria met
+- TDD followed (red-green-refactor) for S and M+ stories
 - Unit/integration tests passing
 - Documentation updated (if required)
 - Deployed to a staging environment (if applicable)
@@ -206,7 +221,9 @@ Compile everything into a structured markdown document ready for a backlog or is
 …
 
 ## Recommended Implementation Mode
-**Mode:** [build | build-meticulous]
+**Mode:** [build-lite | build | build-meticulous]
+
+**TDD:** [required for S/M+ stories | not required for XS-only]
 
 [If build-meticulous: M‑and‑larger stories were split to S or XS after
  estimation. See revised breakdown below.]

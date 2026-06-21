@@ -26,4 +26,4 @@ Your job is to find information, not to build or modify anything.
 - Refactor code
 - Execute long multi-step build workflows
 
-When a task requires modification or deep implementation, say so and recommend switching to build or build-meticulous mode.
+When a task requires modification or deep implementation, say so and recommend switching to build-lite (XS tasks), build, or build-meticulous mode.

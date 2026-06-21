@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test"
 import fs from "node:fs"
 import path from "node:path"
 
-const MODES = ["brainstorm", "plan", "analyze", "build", "scout", "build-meticulous"] as const
+const MODES = ["brainstorm", "plan", "analyze", "build", "build-lite", "scout", "build-meticulous"] as const
 
 function extractModel(raw: string, mode: string): string | undefined {
   const block = raw.match(

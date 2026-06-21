@@ -85,6 +85,29 @@ is implemented. Red: the test fails. Green: write the minimum code to pass.
 Refactor: clean up while keeping all tests green. Never write production code
 without a corresponding failing test written first.
 
+You own the tests. The tests are your specification — never delegate test
+writing. Once the failing tests are in place, delegate the implementation
+(green phase) to subagents using this escalation pattern:
+
+1. **Build-lite subagents (1–3 loops).** For each XS sub-task, spawn a
+   build-lite sub-agent with the failing test, the target file, and precise
+   instructions. Give it up to 3 attempts with corrected instructions between
+   each. If the sub-task is genuinely XS, this usually succeeds.
+
+2. **Build subagents (1–3 loops).** If build-lite could not make the test
+   pass after 3 attempts, escalate to a build sub-agent. The build sub-agent
+   has a stronger model and can handle cross-file coordination. Give it up to
+   3 attempts with refined instructions between each.
+
+3. **Handle it yourself.** If both subagent tiers failed after their loops,
+   implement the sub-task directly. You have the deepest understanding of the
+   system — use it. Trace the failure, identify the root cause, and write the
+   code yourself.
+
+After each subagent returns, verify its work by running the tests. Never
+accept unverified output. If a subagent's change breaks other tests, either
+fix directly (if trivial) or re-delegate with the failure context included.
+
 Instrument for deep debugging. Assume the code will break. Use the available
 MCP tools to trace execution:
 - Use **Semgrep MCP** for static analysis — scan code for security
