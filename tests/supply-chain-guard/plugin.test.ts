@@ -185,7 +185,7 @@ describe("SupplyChainGuard plugin", () => {
           lockfileHash: lockHash,
           recipesHash: recHash,
           findingsCount: 42,
-          scannedAt: "2026-03-25",
+          scannedAt: new Date().toISOString().split("T")[0],
           ecosystem: "npm/yarn/pnpm/bun",
         },
       }
