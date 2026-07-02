@@ -15,8 +15,7 @@ import {
  * 2. All checks absent → prompt user to opt in to full setup
  * 3. Partial → prompt user listing only what's missing (per-item confirm)
  *
- * Detection runs on two triggers:
- * - session.created: every new session (startup)
+ * Detection runs on one trigger:
  * - command.executed: when /init runs (re-check after AGENTS.md may have changed)
  *
  * All detection uses Node.js fs operations only — no shell commands.
@@ -129,16 +128,7 @@ export const PersonalInstructions: Plugin = async ({ client, directory, worktree
 
 	return {
 		event: async ({ event }) => {
-			// Trigger 1: new session created (startup)
-			// SDK v1: properties.info.id | SDK v2: properties.sessionID | Runtime: properties.id
-			if (event.type === "session.created") {
-				const props = event.properties as { id?: string; sessionID?: string; info?: { id?: string } }
-				const sessionId = props.sessionID || props.id || props.info?.id
-				if (!sessionId) return
-				await checkAndPrompt(sessionId)
-			}
-
-			// Trigger 2: /init command executed (re-check after AGENTS.md may have changed)
+			// Trigger: /init command executed (re-check after AGENTS.md may have changed)
 			// SDK: properties.name, properties.sessionID
 			if (event.type === "command.executed") {
 				const cmd = event.properties as { name?: string; command?: string; sessionID?: string; sessionId?: string }
