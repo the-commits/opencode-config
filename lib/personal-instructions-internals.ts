@@ -59,7 +59,11 @@ function findProjectConfig(directory: string): string | null {
  * Mirrors the approach in php-tooling-internals.ts.
  */
 function stripJsoncComments(raw: string): string {
-	return raw.replace(/^\s*\/\/.*$/gm, "")
+	// Remove single-line comments
+	let cleaned = raw.replace(/^\s*\/\/.*$/gm, "")
+	// Remove trailing commas before closing braces or brackets (valid JSONC)
+	cleaned = cleaned.replace(/,(\s*[}\]])/g, "$1")
+	return cleaned
 }
 
 /**
